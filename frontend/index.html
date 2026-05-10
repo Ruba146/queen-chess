@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Queen Chess</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet"
+href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+
+</head>
+
+<body>
+
+<div class="sidebar" id="sidebar"></div>
+<div id="content">
+<h2>Welcome Queen 👑</h2>
+</div>
+
+<!-- Libraries -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chess-openings@1.0.6/dist/chess-openings.min.js"></script>
+
+<script>
+let analysisBoard = null;
+let analysisGame = null;
+let analysisMoves = [];
+let currentMoveIndex = -1;
+
+
+// ================= GLOBAL =================
+let engine = null;
+let board = null;
+let game = new Chess();
+let playerColor = "white";
+let currentAccuracy = 0;
+let currentOpening = "Unknown Opening";
+
+let moveReviews = [];
+let gameMoves = []; // 🔥 جديد: نخزن كل النقلات مع التحليل
+let pendingAIMove = false;
+let pendingLiveAnalysis = false;
+let pendingReviewAnalysis = false;
+let moveAnalysis = [];
+let engineBusy = false;
+
+function goToLogin() {
+  window.location.href = "login.html";
+}
+// ================= ENGINE =================
+function initEngine() {
+
+if(engine) return;
+
+engine = new Worker("stockfish.js");
+
+    engine.postMessage("uci");
+    engine.postMessage("isready");
+
+    engine.addEventListener("message", function(event){
+
+        const line = event.data;
+
+        // ================= LIVE GAME ANALYSIS =================
+        if(
+            pendingLiveAnalysis &&
+            line.includes("score cp")
+        ){
+
+            const scoreMatch =
+            line.match(/score cp (-?\d+)/);
+
+            if(scoreMatch){
+
+                const score =
+                parseInt(scoreMatch[1]);
+
+                let review = "Good Move";
+
+                if(score > 250)
+                    review = "🔥 Brilliant";
+
+                else if(score > 120)
+                    review = "✨ Great Move";
+
+                else if(score < -250)
+                    review = "❌ Blunder";
+
+                else if(score < -100)
+                    review = "⚠ Mistake";
+
+                const reviewEl =
+                document.getElementById("liveReview");
+
+                if(reviewEl){
+                    reviewEl.innerHTML = review;
+                }
+
+                pendingLiveAnalysis = false;
+            }
+        }
+
+        // ================= REVIEW ANALYSIS =================
+        if(
+            pendingReviewAnalysis &&
+            line.includes("score cp")
+        ){
+
+            const scoreMatch =
+            line.match(/score cp (-?\d+)/);
+
+            if(!scoreMatch) return;
+
+            const score =
+            parseInt(scoreMatch[1]);
+
+            let moveType = "Best Move";
+            let color = "#22c55e";
+
+            if(score < -300){
+                moveType = "Blunder";
+                color = "#ef4444";
+            }
+            else if(score < -120){
+                moveType = "Mistake";
+                color = "#f97316";
+            }
+            else if(score > 250){
+                moveType = "Brilliant";
+                color = "#06b6d4";
+            }
+            else if(score > 120){
+                moveType = "Great Move";
+                color = "#a855f7";
+            }
+
+            document.getElementById(
+            "moveReview"
+            ).innerHTML = `
+
+            <div class="move-card">
+
+                <h2>
+                Move ${currentMoveIndex + 1}
+                </h2>
+
+                <div style="
+                color:${color};
+                font-size:28px;
+                font-weight:700;
+                margin-top:10px;
+                ">
+                ${moveType}
+                </div>
+
+                <p style="
+                margin-top:20px;
+                color:#aaa;
+                ">
+                Move Played:
+                ${analysisMoves[currentMoveIndex]}
+                </p>
+
+                <p style="
+                margin-top:10px;
+                color:#aaa;
+                ">
+                Evaluation:
+                ${score / 100}
+                </p>
+
+            </div>
+            `;
+
+            pendingReviewAnalysis = false;
+        }
+if(line.includes("bestmove")){
+
+    engineBusy = false;
+
+}
+        // ================= AI MOVE =================
+        if(
+            pendingAIMove &&
+            line.startsWith("bestmove")
+        ){
+
+            const move =
+            line.split(" ")[1];
+
+            if(
+                move === "(none)" ||
+                move.length < 4
+            ) return;
+
+            game.move({
+                from: move.substring(0,2),
+                to: move.substring(2,4),
+                promotion:"q"
+            });
+
+            board.position(game.fen());
+
+            checkGameStatus();
+
+            pendingAIMove = false;
+        }
+
+    });
+}
+
+// ================= AI =================
+function makeAIMove() {
+
+    if (!engine || game.game_over()) return;
+
+    engine.postMessage("position fen " + game.fen());
+
+    engine.postMessage("setoption name Skill Level value 20");
+    engine.postMessage("setoption name Threads value 4");
+    engine.postMessage("setoption name Hash value 256");
+
+    engine.postMessage("go depth 18");
+
+    
+}
+
+// ================= GAME =================
+function onDrop(source, target) {
+
+    const move = game.move({
+        from: source,
+        to: target,
+        promotion: "q"
+    });
+
+    if (move === null) return "snapback";
+
+    // 🔥 حفظ نقلة اللاعب
+    gameMoves.push({
+        move: move.san,
+        playerEval: 0,
+        bestEval: 0
+    });
+
+    board.position(game.fen());
+
+    // ================= OPENING =================
+    const pgn = game.pgn();
+
+    if(pgn.includes("e4 e5 Nf3 Nc6 Bb5")){
+        currentOpening = "Ruy Lopez";
+    }
+
+    // ================= LIVE ANALYSIS =================
+    engine.postMessage(
+        "position fen " + game.fen()
+    );
+
+    pendingLiveAnalysis = true;
+engine.postMessage("go depth 12");
+
+    
+
+    checkGameStatus();
+
+    // 🔥 دور الـ AI
+    if (!game.game_over()) {
+
+        setTimeout(() => {
+
+    pendingAIMove = true;
+
+    engine.postMessage(
+    "position fen " + game.fen()
+    );
+
+    engine.postMessage(
+    "go depth 18"
+    );
+
+}, 300);
+    }
+}
+
+// ================= GAME STATUS =================
+function checkGameStatus() {
+
+    const el = document.getElementById("gameResult");
+    if (!el) return;
+
+    if (game.in_checkmate()) {
+        const winner = game.turn() === "w" ? "Black" : "White";
+
+        el.innerHTML = "🏆 " + winner + " wins!";
+        saveGame(winner);
+    }
+
+    else if (game.in_draw()) {
+        el.innerHTML = "🤝 Draw!";
+        saveGame("draw");
+    }
+}
+
+// ================= SAVE GAME =================
+function saveGame(result) {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.log("❌ No token, game not saved");
+        return;
+    }
+
+    fetch("http://localhost:5000/api/game/save", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+      body: JSON.stringify({
+    result,
+    moves: game.history(),
+    pgn: game.pgn(),
+    playerColor,
+    accuracy: currentAccuracy,
+    opening: currentOpening
+}) 
+
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Save failed");
+        return res.json();
+    })
+    .then(() => console.log("Game saved ✅"))
+    .catch(err => console.log("Save error ❌", err));
+}
+
+
+// ================= SIDEBAR =================
+function renderSidebar() {
+
+    const token = localStorage.getItem("token");
+
+    document.getElementById("sidebar").innerHTML = `
+
+        <div class="logo">
+            ♛ Queen Chess
+        </div>
+
+        <div class="sidebar-buttons">
+
+            ${!token
+            ? `<button onclick="goToLogin()">Login</button>`
+            : `<button onclick="logout()">Logout</button>`
+            }
+
+            <button onclick="loadHome()">Home</button>
+
+<button onclick="loadPlay()">Play</button>
+
+<button onclick="loadMatches()">My Games</button>
+
+<button onclick="loadLearning()">Learning</button>
+
+<button onclick="loadQuiz()">Quiz</button>
+
+<button onclick="loadProfile()">Profile</button>
+
+<button onclick="loadPremium()">Premium</button>
+
+        </div>
+    `;
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    location.reload();
+}
+
+
+// ================= HOME =================
+
+async function loadHome(){
+
+const token = localStorage.getItem("token");
+
+try{
+
+const response = await fetch(
+"http://localhost:5000/api/game/stats/rapid",
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
+);
+
+const data = await response.json();
+
+document.getElementById("content").innerHTML = `
+
+<div class="home-page">
+
+    <div class="topbar">
+
+        <div>
+            <h1>Welcome Back 👑</h1>
+            <p>Continue improving your chess skills.</p>
+        </div>
+
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="stat-box">
+            <h3>Games</h3>
+            <span>${data.gamesPlayed}</span>
+        </div>
+
+        <div class="stat-box">
+            <h3>Win Rate</h3>
+            <span>${data.winRate}</span>
+        </div>
+
+        <div class="stat-box">
+            <h3>Rating</h3>
+            <span>${data.rating}</span>
+        </div>
+
+        <div class="stat-box">
+            <h3>Rank</h3>
+            <span>${data.tier}</span>
+        </div>
+
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+
+            <h2>♟ Continue Playing</h2>
+
+            <p>
+                Jump into a new AI match and improve.
+            </p>
+
+            <button onclick="loadPlay()">
+                Start Match
+            </button>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <h2>📚 Learning</h2>
+
+            <p>
+                Study openings, tactics, and endgames.
+            </p>
+
+            <button onclick="loadLearning()">
+                Open Learning
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+`;
+
+}catch(err){
+
+document.getElementById("content").innerHTML = `
+<div class="dashboard-card">
+<h1>⚠ Failed To Load Stats</h1>
+<p>Please try again later.</p>
+</div>
+`;
+
+console.log(err);
+
+}
+}
+// ================= LEARNING =================
+
+function loadLearning(){
+
+document.getElementById("content").innerHTML = `
+
+<div class="analysis-card">
+
+<h2>📚 Learning</h2>
+
+<p class="sub-text">
+Coming soon...
+</p>
+
+</div>
+`;
+}
+
+// ================= QUIZ =================
+
+function loadQuiz(){
+
+document.getElementById("content").innerHTML = `
+
+<div class="analysis-card">
+
+<h2>🧩 Quiz</h2>
+
+<p class="sub-text">
+Chess puzzles and tactical training.
+</p>
+
+</div>
+`;
+}
+
+// ================= PROFILE =================
+
+function loadProfile(){
+
+document.getElementById("content").innerHTML = `
+
+<div class="analysis-card">
+
+<h2>👤 Profile</h2>
+
+<p class="sub-text">
+Player statistics and achievements.
+</p>
+
+</div>
+`;
+}
+
+// ================= PREMIUM =================
+
+function loadPremium(){
+
+document.getElementById("content").innerHTML = `
+
+<div class="analysis-card">
+
+<h2>💎 Premium</h2>
+
+<p class="sub-text">
+This is trial version; you will be notified before service is activated.
+</p>
+
+</div>
+`;
+}
+// ================= PLAY =================
+function setColor(color) {
+    playerColor = color;
+
+    const el = document.getElementById("gameResult");
+    if (el) el.innerHTML = "Selected: " + color;
+}
+
+function startGame() {
+    game = new Chess();
+
+    board = Chessboard('board', {
+        draggable: true,
+        position: "start",
+        orientation: playerColor,
+        onDrop: onDrop
+    });
+
+    initEngine();
+
+    if (playerColor === "black") {
+
+    setTimeout(() => {
+
+        pendingAIMove = true;
+
+        engine.postMessage(
+        "position startpos"
+        );
+
+        engine.postMessage(
+        "go depth 18"
+        );
+
+    }, 500);
+}
+}
+
+
+function loadPlay() {
+
+    document.getElementById("content").innerHTML = `
+
+    <div class="play-wrapper">
+
+        <div class="side-panel">
+
+            <div class="analysis-card">
+
+                <div class="analysis-title">
+                    ♛ Start Match
+                </div>
+
+                <p class="sub-text">
+                    Choose your side and start playing.
+                </p>
+
+                <div class="game-controls">
+
+                    <button onclick="setColor('white')">
+                        🤍 White
+                    </button>
+
+                    <button onclick="setColor('black')">
+                        🖤 Black
+                    </button>
+
+                </div>
+
+                <button class="start-main-btn"
+                onclick="startGame()">
+                    ▶ Start Game
+                </button>
+
+                <div id="gameResult"></div>
+<div id="liveReview" class="live-review">
+AI Analysis Waiting...
+</div>
+            </div>
+
+        </div>
+
+        <div class="board-container">
+
+            <div id="board"></div>
+
+        </div>
+
+    </div>
+    `;
+}
+
+// ================= MY GAMES =================
+function loadMatches() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+
+        document.getElementById("content").innerHTML = `
+        <div class="analysis-card">
+
+            <h2>⚠️ Login Required</h2>
+
+            <button onclick="goToLogin()">
+                Login
+            </button>
+
+        </div>
+        `;
+
+        return;
+    }
+
+    fetch("http://localhost:5000/api/game/my-games", {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (!data || data.length === 0) {
+
+            document.getElementById("content").innerHTML = `
+            <div class="analysis-card">
+
+                <h2>No Games Yet 😢</h2>
+
+                <p style="color:#aaa;">
+                    Play your first match to see history.
+                </p>
+
+            </div>
+            `;
+
+            return;
+        }
+
+        let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+
+            <div>
+                <h2>♟ My Games</h2>
+                <p style="color:#999;">Recent matches and analysis</p>
+            </div>
+
+        </div>
+
+        <div class="games-container">
+        `;
+
+        data.forEach(g => {
+
+    html += `
+
+    <div class="game-card">
+
+        <div class="game-header">
+
+            <div class="result">
+                ${g.result || "Unknown"}
+            </div>
+
+            <div class="date">
+                ${new Date(g.createdAt).toLocaleDateString()}
+            </div>
+
+        </div>
+
+        <div class="game-body">
+
+            ♟ Moves: ${g.moves?.length || 0}
+            <br><br>
+
+            
+            🎯 Accuracy: ${g.accuracy || 0}%
+
+        </div>
+
+        <div class="game-actions">
+
+            <button onclick="analyzeGame('${g._id}')">
+                🔍 Analyze
+            </button>
+
+        </div>
+
+    </div>
+    `;
+});
+
+        html += `</div>`;
+
+        document.getElementById("content").innerHTML = html;
+    });
+}
+
+
+async function analyzeGame(gameId){
+
+const token = localStorage.getItem("token");
+
+const response = await fetch(
+"http://localhost:5000/api/game/my-games",
+{
+headers:{
+Authorization:`Bearer ${token}`
+}
+}
+);
+
+const games = await response.json();
+
+const gameData = games.find(g => g._id === gameId);
+
+if(!gameData){
+alert("Game not found");
+return;
+}
+document.getElementById("content").innerHTML = `
+
+<div class="analysis-layout">
+
+    <div class="analysis-left">
+
+        <button class="back-btn"
+        onclick="loadMatches()">
+            ← Back To Games
+        </button>
+
+        <div id="analysisBoard"></div>
+
+        <div class="move-buttons">
+
+            <button onclick="previousMove()">
+                ← Previous
+            </button>
+
+            <button onclick="nextMove()">
+                Next →
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="analysis-right">
+
+        <div class="right-panel">
+
+            <div class="review-card">
+
+                <h1>♟ Game Review</h1>
+
+                <div class="stat">
+                    🎯 Accuracy:
+                    ${gameData.accuracy || 0}%
+                </div>
+
+                <div class="stat">
+                    ♟ Moves:
+                    ${gameData.moves?.length || 0}
+                </div>
+
+                <div class="stat">
+                    🏆 Result:
+                    ${gameData.result || "Unknown"}
+                </div>
+
+                <div class="stat">
+                    📖 Opening:
+                    ${gameData.opening || "Unknown Opening"}
+                </div>
+
+                <div id="moveReview">
+
+                    <div class="move-card">
+
+                        <h2>Game Analysis</h2>
+
+                        <p style="color:#aaa;">
+                            Click next to review moves
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="moves-box">
+
+                <h2 class="moves-title">
+                    Game Moves
+                </h2>
+
+                <div id="movesList"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+`;
+
+analysisGame = new Chess();
+if(!engine){
+    initEngine();
+}
+analysisMoves = gameData.moves || [];
+renderMovesList();
+currentMoveIndex = -1;
+
+analysisBoard = Chessboard("analysisBoard",{
+    position:"start",
+    draggable:false,
+    orientation:
+        gameData.playerColor === "black"
+        ? "black"
+        : "white"
+});
+
+if(gameData.playerColor === "black"){
+analysisBoard.orientation("black");
+}
+
+}
+
+
+// ================= REVIEW MOVES =================
+
+function nextMove() {
+
+    if (currentMoveIndex >= analysisMoves.length - 1)
+        return;
+
+    currentMoveIndex++;
+
+    analysisGame.move(
+        analysisMoves[currentMoveIndex]
+    );
+
+    analysisBoard.position(
+        analysisGame.fen()
+    );
+
+    renderMovesList();
+
+    analyzeCurrentMove();
+}
+
+function previousMove() {
+
+    if (currentMoveIndex < 0)
+        return;
+
+    analysisGame.undo();
+
+    analysisBoard.position(
+        analysisGame.fen()
+    );
+
+    currentMoveIndex--;
+
+    renderMovesList();
+
+    analyzeCurrentMove();
+}
+function analyzeCurrentMove() {
+
+    if(currentMoveIndex < 0){
+        return;
+    }
+
+    if(!engine) return;
+
+    // 🔥 إذا المحرك مشغول لا ترسل تحليل جديد
+    if(engineBusy) return;
+
+    engineBusy = true;
+
+    engine.postMessage("stop");
+
+    setTimeout(() => {
+
+        engine.postMessage(
+        "position fen " +
+        analysisGame.fen()
+        );
+
+        pendingReviewAnalysis = true;
+
+        engine.postMessage(
+        "go depth 12"
+        );
+
+    }, 100);
+
+}
+function renderMovesList(){
+
+let html = "";
+
+analysisMoves.forEach((move,index)=>{
+
+const active =
+index === currentMoveIndex
+? "active-move"
+: "";
+
+html += `
+
+<button
+class="move-btn ${active}"
+onclick="jumpToMove(${index})"
+>
+${index + 1}. ${move}
+</button>
+
+`;
+
+});
+
+document.getElementById(
+"movesList"
+).innerHTML = html;
+
+}
+
+function jumpToMove(index){
+
+    analysisGame = new Chess();
+
+    for(let i = 0; i <= index; i++){
+
+        analysisGame.move(
+        analysisMoves[i]
+        );
+    }
+
+    currentMoveIndex = index;
+
+    analysisBoard.position(
+    analysisGame.fen()
+    );
+
+    renderMovesList();
+
+    analyzeCurrentMove();
+}
+
+// ================= INIT =================
+renderSidebar();
+
+loadHome();
+</script>
+</body>
+</html>

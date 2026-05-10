@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Queen Chess - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-container">
+  <h1>♛ Dashboard</h1>
+
+  <p id="username"></p>
+  <p id="rating"></p>
+  <p id="tier"></p>
+  <p id="games"></p>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
+async function loadStats() {
+  try {
+
+    // 🔥 بيانات المستخدم
+    const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const user = await profileRes.json();
+
+    document.getElementById("username").textContent =
+      "👤 " + user.username;
+
+    // 🔥 الإحصائيات
+    const statsRes = await fetch(
+      "http://localhost:5000/api/game/stats/rapid",
+      {
+        headers: { Authorization: "Bearer " + token }
+      }
+    );
+
+    const data = await statsRes.json();
+
+    document.getElementById("rating").textContent =
+      "Rating: " + data.rating;
+
+    document.getElementById("tier").textContent =
+      "Tier: " + data.tier;
+
+    document.getElementById("games").innerHTML = `
+      Games Played: ${data.gamesPlayed} <br>
+      Wins: ${data.wins} <br>
+      Losses: ${data.losses} <br>
+      Draws: ${data.draws} <br>
+      Win Rate: ${data.winRate} <br>
+      Streak: ${data.currentStreak}
+    `;
+
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+loadStats();
+</script>
+
+</body>
+</html>
