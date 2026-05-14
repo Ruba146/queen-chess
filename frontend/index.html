@@ -40,22 +40,22 @@ const aiSettings = {
 
     beginner:{
         skill:0,
-        depth:2
+        depth:1
     },
 
     intermediate:{
         skill:5,
-        depth:5
+        depth:3
     },
 
     advanced:{
         skill:10,
-        depth:10
+        depth:6
     },
 
     master:{
         skill:20,
-        depth:16
+        depth:14
     }
 };
 let currentAccuracy = 0;
@@ -325,6 +325,10 @@ return "snapback";
 
 if(piece.color !== playerColor[0])
 return "snapback";
+
+if(game.turn() !== playerColor[0])
+return "snapback";
+
     const move = game.move({
         from: source,
         to: target,
@@ -382,11 +386,13 @@ function checkGameStatus() {
 
         el.innerHTML = "🏆 " + winner + " wins!";
         saveGame(winner);
+        board.draggable = false;
     }
 
     else if (game.in_draw()) {
         el.innerHTML = "🤝 Draw!";
         saveGame("draw");
+        board.draggable = false;
     }
 }
 
@@ -423,7 +429,7 @@ function saveGame(result) {
     .then(() => {
 
     console.log("Game saved ✅");
-
+loadHome();
     const resultBox =
     document.getElementById(
     "gameResult"
@@ -705,6 +711,8 @@ function setRandomColor(){
 }
 
 function startGame() {
+    pendingAIMove = false;
+engineBusy = false;
     aiLevel =
 document.getElementById(
 "difficultySelect"
@@ -751,8 +759,8 @@ function showHints(square){
 
         if(el){
 
-            el.style.boxShadow =
-            "inset 0 0 0 4px #a855f7";
+            el.style.background =
+"radial-gradient(circle, #a855f7 30%, transparent 35%)";
         }
     });
 }

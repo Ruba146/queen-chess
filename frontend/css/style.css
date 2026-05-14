@@ -166,7 +166,7 @@ button:hover{
 /* ================= BOARD ================= */
 
 #board{
-width:620px;
+width:650px;
 max-width:90vw;
 box-shadow:0 0 40px rgba(168,85,247,.35);
 border-radius:18px;
@@ -394,12 +394,11 @@ overflow:hidden;
 }
 
 .play-wrapper{
-display:flex;
-align-items:flex-start;
-justify-content:center;
-gap:40px;
-padding:40px;
-flex-wrap:wrap;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:30px;
+    padding:30px;
 }
 
 .side-panel{
@@ -414,7 +413,7 @@ flex-wrap:wrap;
 }
 
 #board{
-    width: 620px;
+    width: 650px;
     max-width: 90vw;
 }
 
@@ -426,9 +425,9 @@ flex-wrap:wrap;
   border:1px solid rgba(255,255,255,0.08);
   border-radius:28px;
 
-  width:340px;
+  width:280px;
 
-  padding:30px;
+  padding:25px;
 
   box-shadow: 0 0 40px rgba(0,0,0,.4);
 }
@@ -446,8 +445,8 @@ flex-wrap:wrap;
 
 .color-row{
     display:flex;
-    gap:12px;
-    margin-bottom:12px;
+    gap:10px;
+    margin-top:15px;
 }
 
 .color-row button{
@@ -456,7 +455,7 @@ flex-wrap:wrap;
 
 .full-btn{
     width:100%;
-    margin-bottom:18px;
+    margin-top:12px;
 }
 
 .game-controls button{
