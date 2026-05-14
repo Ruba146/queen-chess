@@ -35,6 +35,7 @@ let engine = null;
 let board = null;
 let game = new Chess();
 let playerColor = "white";
+let aiLevel = 10;
 let currentAccuracy = 0;
 let currentOpening = "Unknown Opening";
 
@@ -218,7 +219,9 @@ function makeAIMove() {
 
     engine.postMessage("position fen " + game.fen());
 
-    engine.postMessage("setoption name Skill Level value 20");
+engine.postMessage(
+`setoption name Skill Level value ${aiLevel}`
+);
     engine.postMessage("setoption name Threads value 4");
     engine.postMessage("setoption name Hash value 256");
 
@@ -228,6 +231,22 @@ function makeAIMove() {
 }
 
 // ================= GAME =================
+let beginnerHints = false;
+function toggleHints(){
+
+    beginnerHints = !beginnerHints;
+
+    const el =
+    document.getElementById("liveReview");
+
+    if(el){
+
+        el.innerHTML =
+        beginnerHints
+        ? "💡 Beginner hints ON"
+        : "Hints OFF";
+    }
+}
 function onDrop(source, target) {
 
     const move = game.move({
@@ -334,7 +353,12 @@ function saveGame(result) {
         if (!res.ok) throw new Error("Save failed");
         return res.json();
     })
-    .then(() => console.log("Game saved ✅"))
+    .then(() => {
+
+    console.log("Game saved ✅");
+
+    loadHome();
+})
     .catch(err => console.log("Save error ❌", err));
 }
 
@@ -564,14 +588,39 @@ function setColor(color) {
     if (el) el.innerHTML = "Selected: " + color;
 }
 
+function setRandomColor(){
+
+    const random =
+    Math.random() < 0.5
+    ? "white"
+    : "black";
+
+    playerColor = random;
+
+    const el =
+    document.getElementById("gameResult");
+
+    if(el){
+        el.innerHTML =
+        "🎲 Random selected: " + random;
+    }
+}
+
 function startGame() {
+    aiLevel = parseInt(
+document.getElementById(
+"difficultySelect"
+).value
+);
     game = new Chess();
 
     board = Chessboard('board', {
         draggable: true,
         position: "start",
         orientation: playerColor,
-        onDrop: onDrop
+        onDrop: onDrop,
+onMouseoverSquare: showHints,
+onMouseoutSquare: removeHints
     });
 
     initEngine();
@@ -594,6 +643,42 @@ function startGame() {
 }
 }
 
+function showHints(square){
+
+    if(!beginnerHints) return;
+
+    const moves =
+    game.moves({
+        square,
+        verbose:true
+    });
+
+    moves.forEach(move => {
+
+        const el =
+        document.querySelector(
+        `.square-${move.to}`
+        );
+
+        if(el){
+
+            el.style.boxShadow =
+            "inset 0 0 0 4px #a855f7";
+        }
+    });
+}
+
+function removeHints(){
+
+    document
+    .querySelectorAll(
+    '[class*="square-"]'
+    )
+    .forEach(el => {
+
+        el.style.boxShadow = "";
+    });
+}
 
 function loadPlay() {
 
@@ -623,7 +708,53 @@ function loadPlay() {
                         🖤 Black
                     </button>
 
+                    <button onclick="setRandomColor()">
+                        🎲 Random
+                    </button>
+
                 </div>
+
+                <!-- AI LEVEL -->
+                <div style="margin-top:20px;">
+
+                    <select id="difficultySelect"
+                    style="
+                    width:100%;
+                    padding:12px;
+                    border-radius:12px;
+                    background:#1e1e2f;
+                    color:white;
+                    border:none;
+                    ">
+
+                        <option value="5">
+                            Beginner
+                        </option>
+
+                        <option value="10" selected>
+                            Intermediate
+                        </option>
+
+                        <option value="15">
+                            Advanced
+                        </option>
+
+                        <option value="20">
+                            Master
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- BEGINNER HELP -->
+                <button
+                style="margin-top:15px;"
+                onclick="toggleHints()">
+
+                    💡 Beginner Help
+
+                </button>
 
                 <button class="start-main-btn"
                 onclick="startGame()">
@@ -631,9 +762,14 @@ function loadPlay() {
                 </button>
 
                 <div id="gameResult"></div>
-<div id="liveReview" class="live-review">
-AI Analysis Waiting...
-</div>
+
+                <div id="liveReview"
+                class="live-review">
+
+                    AI Analysis Waiting...
+
+                </div>
+
             </div>
 
         </div>
