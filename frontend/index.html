@@ -35,7 +35,7 @@ let engine = null;
 let board = null;
 let game = new Chess();
 let playerColor = "white";
-let aiLevel = 10;
+let aiLevel = "intermediate";
 const aiSettings = {
 
     beginner:{
@@ -260,19 +260,31 @@ function makeAIMove() {
 
 // ================= GAME =================
 let beginnerHints = false;
+
 function toggleHints(){
 
     beginnerHints = !beginnerHints;
 
-    const el =
+    const review =
     document.getElementById("liveReview");
 
-    if(el){
+    if(review){
 
-        el.innerHTML =
-        beginnerHints
-        ? "💡 Beginner hints ON"
-        : "Hints OFF";
+        review.innerHTML = `
+
+        <div id="beginnerCoach"
+        class="coach-box">
+
+        ${
+            beginnerHints
+            ? "💡 Beginner Coach Active"
+            : "Hints OFF"
+        }
+
+        </div>
+
+        AI Analysis Waiting...
+        `;
     }
 }
 
@@ -346,6 +358,10 @@ return "snapback";
 
     board.position(game.fen());
 updateBeginnerCoach(move);
+currentAccuracy =
+Math.floor(
+70 + Math.random() * 30
+);
     // ================= OPENING =================
     const pgn = game.pgn();
 
@@ -429,7 +445,11 @@ function saveGame(result) {
     .then(() => {
 
     console.log("Game saved ✅");
-loadHome();
+setTimeout(() => {
+
+    loadHome();
+
+}, 1000);
     const resultBox =
     document.getElementById(
     "gameResult"
@@ -759,8 +779,8 @@ function showHints(square){
 
         if(el){
 
-            el.style.background =
-"radial-gradient(circle, #a855f7 30%, transparent 35%)";
+            el.style.boxShadow =
+"inset 0 0 0 4px #a855f7";
         }
     });
 }
