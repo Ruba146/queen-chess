@@ -36,6 +36,28 @@ let board = null;
 let game = new Chess();
 let playerColor = "white";
 let aiLevel = 10;
+const aiSettings = {
+
+    beginner:{
+        skill:0,
+        depth:2
+    },
+
+    intermediate:{
+        skill:5,
+        depth:5
+    },
+
+    advanced:{
+        skill:10,
+        depth:10
+    },
+
+    master:{
+        skill:20,
+        depth:16
+    }
+};
 let currentAccuracy = 0;
 let currentOpening = "Unknown Opening";
 
@@ -215,19 +237,25 @@ if(line.includes("bestmove")){
 // ================= AI =================
 function makeAIMove() {
 
-    if (!engine || game.game_over()) return;
+    if (!engine || game.game_over())
+    return;
 
     pendingAIMove = true;
+
+    const level =
+    aiSettings[aiLevel];
 
     engine.postMessage(
         "position fen " + game.fen()
     );
 
     engine.postMessage(
-        `setoption name Skill Level value ${aiLevel}`
+        `setoption name Skill Level value ${level.skill}`
     );
 
-    engine.postMessage("go depth 12");
+    engine.postMessage(
+        `go depth ${level.depth}`
+    );
 }
 
 // ================= GAME =================
@@ -247,8 +275,56 @@ function toggleHints(){
         : "Hints OFF";
     }
 }
-function onDrop(source, target) {
 
+function updateBeginnerCoach(move){
+
+const coach =
+document.getElementById(
+"beginnerCoach"
+);
+
+if(!coach) return;
+
+if(move.piece === "p"){
+
+coach.innerHTML =
+"💡 Good pawn move. Control the center.";
+
+}
+
+else if(move.piece === "n"){
+
+coach.innerHTML =
+"✨ Nice! Knights are strong early.";
+
+}
+
+else if(move.piece === "q"){
+
+coach.innerHTML =
+"⚠ Be careful using the queen too early.";
+
+}
+
+else{
+
+coach.innerHTML =
+"♟ Keep developing your pieces.";
+}
+}
+
+function onDrop(source, target) {
+if(pendingAIMove)
+return "snapback";
+
+const piece =
+game.get(source);
+
+if(!piece)
+return "snapback";
+
+if(piece.color !== playerColor[0])
+return "snapback";
     const move = game.move({
         from: source,
         to: target,
@@ -265,7 +341,7 @@ function onDrop(source, target) {
     });
 
     board.position(game.fen());
-
+updateBeginnerCoach(move);
     // ================= OPENING =================
     const pgn = game.pgn();
 
@@ -348,7 +424,38 @@ function saveGame(result) {
 
     console.log("Game saved ✅");
 
-    loadHome();
+    const resultBox =
+    document.getElementById(
+    "gameResult"
+    );
+
+    if(resultBox){
+
+        resultBox.innerHTML += `
+
+        <br><br>
+
+        <button
+        onclick="loadHome()"
+        style="
+        margin-top:10px;
+        ">
+
+        🏠 Back Home
+
+        </button>
+
+        <button
+        onclick="loadPlay()"
+        style="
+        margin-top:10px;
+        ">
+
+        🔄 Play Again
+
+        </button>
+        `;
+    }
 })
     .catch(err => console.log("Save error ❌", err));
 }
@@ -598,11 +705,10 @@ function setRandomColor(){
 }
 
 function startGame() {
-    aiLevel = parseInt(
+    aiLevel =
 document.getElementById(
 "difficultySelect"
-).value
-);
+).value;
     game = new Chess();
 
     board = Chessboard('board', {
@@ -713,22 +819,21 @@ AI Difficulty
                     border:none;
                     ">
 
-                        <option value="5">
-                            Beginner
-                        </option>
+                       <option value="beginner">
+    Beginner
+</option>
 
-                        <option value="10" selected>
-                            Intermediate
-                        </option>
+<option value="intermediate" selected>
+    Intermediate
+</option>
 
-                        <option value="15">
-                            Advanced
-                        </option>
+<option value="advanced">
+    Advanced
+</option>
 
-                        <option value="20">
-                            Master
-                        </option>
-
+<option value="master">
+    Master
+</option>
                     </select>
 
                 </div>
@@ -748,7 +853,12 @@ AI Difficulty
 
                 <div id="liveReview"
                 class="live-review">
+<div id="beginnerCoach"
+class="coach-box">
 
+💡 Beginner Coach Ready
+
+</div>
                     AI Analysis Waiting...
 
                 </div>

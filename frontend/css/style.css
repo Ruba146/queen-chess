@@ -872,3 +872,22 @@ padding-right:5px;
     margin-top:18px;
     margin-bottom:8px;
 }
+
+.coach-box{
+
+margin-top:15px;
+
+padding:16px;
+
+border-radius:16px;
+
+background:#161622;
+
+border:1px solid rgba(255,255,255,.08);
+
+color:#ddd;
+
+line-height:1.6;
+
+font-size:14px;
+}
