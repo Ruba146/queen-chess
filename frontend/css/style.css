@@ -166,16 +166,11 @@ button:hover{
 /* ================= BOARD ================= */
 
 #board{
-    margin-top:20px;
-
-    width:520px !important;
-
-    border-radius:18px;
-
-    overflow:hidden;
-
-    box-shadow:
-    0 0 40px rgba(124,58,237,.25);
+width:620px;
+max-width:90vw;
+box-shadow:0 0 40px rgba(168,85,247,.35);
+border-radius:18px;
+overflow:hidden;
 }
 
 /* ================= GAME CONTROLS ================= */
@@ -290,21 +285,6 @@ button:hover{
     margin:auto;
 }
 
-.analysis-card{
-    background:
-    rgba(255,255,255,0.04);
-
-    border:
-    1px solid rgba(255,255,255,0.08);
-
-    border-radius:24px;
-
-    padding:30px;
-
-    margin-top:20px;
-
-    backdrop-filter:blur(18px);
-}
 
 .analysis-title{
     font-size:28px;
@@ -414,12 +394,12 @@ button:hover{
 }
 
 .play-wrapper{
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
-  gap:40px;
-  width:100%;
-  margin-top:40px;
+display:flex;
+align-items:flex-start;
+justify-content:center;
+gap:40px;
+padding:40px;
+flex-wrap:wrap;
 }
 
 .side-panel{
@@ -427,26 +407,29 @@ button:hover{
 }
 
 .board-container{
-  display:flex;
-  justify-content:center;
-  align-items:center;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #board{
-  width:420px !important;
-  max-width:420px !important;
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:
-  0 0 40px rgba(162,89,255,.35);
+    width: 620px;
+    max-width: 90vw;
 }
+
+
 
 .analysis-card{
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(14px);
   border:1px solid rgba(255,255,255,0.08);
   border-radius:28px;
+
+  width:340px;
+
   padding:30px;
+
   box-shadow: 0 0 40px rgba(0,0,0,.4);
 }
 
@@ -461,10 +444,19 @@ button:hover{
   margin-bottom:25px;
 }
 
-.game-controls{
-  display:flex;
-  flex-direction:column;
-  gap:15px;
+.color-row{
+    display:flex;
+    gap:12px;
+    margin-bottom:12px;
+}
+
+.color-row button{
+    flex:1;
+}
+
+.full-btn{
+    width:100%;
+    margin-bottom:18px;
 }
 
 .game-controls button{
@@ -864,4 +856,19 @@ flex-direction:column;
 gap:10px;
 
 padding-right:5px;
+}
+
+.hint-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:15px;
+    color:white;
+    font-weight:600;
+}
+
+.difficulty-label{
+    color:#bbb;
+    margin-top:18px;
+    margin-bottom:8px;
 }

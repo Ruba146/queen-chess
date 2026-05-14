@@ -217,17 +217,17 @@ function makeAIMove() {
 
     if (!engine || game.game_over()) return;
 
-    engine.postMessage("position fen " + game.fen());
+    pendingAIMove = true;
 
-engine.postMessage(
-`setoption name Skill Level value ${aiLevel}`
-);
-    engine.postMessage("setoption name Threads value 4");
-    engine.postMessage("setoption name Hash value 256");
+    engine.postMessage(
+        "position fen " + game.fen()
+    );
 
-    engine.postMessage("go depth 18");
+    engine.postMessage(
+        `setoption name Skill Level value ${aiLevel}`
+    );
 
-    
+    engine.postMessage("go depth 12");
 }
 
 // ================= GAME =================
@@ -287,18 +287,9 @@ engine.postMessage("go depth 12");
 
     // 🔥 دور الـ AI
     if (!game.game_over()) {
+setTimeout(() => {
 
-        setTimeout(() => {
-
-    pendingAIMove = true;
-
-    engine.postMessage(
-    "position fen " + game.fen()
-    );
-
-    engine.postMessage(
-    "go depth 18"
-    );
+    makeAIMove();
 
 }, 300);
     }
@@ -629,15 +620,7 @@ onMouseoutSquare: removeHints
 
     setTimeout(() => {
 
-        pendingAIMove = true;
-
-        engine.postMessage(
-        "position startpos"
-        );
-
-        engine.postMessage(
-        "go depth 18"
-        );
+        makeAIMove();
 
     }, 500);
 }
@@ -694,29 +677,32 @@ function loadPlay() {
                     ♛ Start Match
                 </div>
 
-                <p class="sub-text">
-                    Choose your side and start playing.
-                </p>
+               <p class="sub-text">
+Choose your side, difficulty, and start the match.
+</p>
 
-                <div class="game-controls">
+                <div class="color-row">
 
-                    <button onclick="setColor('white')">
-                        🤍 White
-                    </button>
+    <button onclick="setColor('white')">
+        🤍 White
+    </button>
 
-                    <button onclick="setColor('black')">
-                        🖤 Black
-                    </button>
+    <button onclick="setColor('black')">
+        🖤 Black
+    </button>
 
-                    <button onclick="setRandomColor()">
-                        🎲 Random
-                    </button>
+</div>
 
-                </div>
+<button class="full-btn"
+onclick="setRandomColor()">
+    🎲 Random Side
+</button>
 
                 <!-- AI LEVEL -->
                 <div style="margin-top:20px;">
-
+<p class="difficulty-label">
+AI Difficulty
+</p>
                     <select id="difficultySelect"
                     style="
                     width:100%;
@@ -748,13 +734,10 @@ function loadPlay() {
                 </div>
 
                 <!-- BEGINNER HELP -->
-                <button
-                style="margin-top:15px;"
-                onclick="toggleHints()">
-
-                    💡 Beginner Help
-
-                </button>
+                <label class="hint-toggle">
+    <input type="checkbox" onchange="toggleHints()">
+    Show Legal Moves
+</label>
 
                 <button class="start-main-btn"
                 onclick="startGame()">
