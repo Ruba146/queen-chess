@@ -5,7 +5,7 @@ const protect = require("../middleware/authMiddleware");
 
 const Game = require("../models/Games");
 
-// ================= STATS =================
+//  STATS 
 router.get("/stats/:mode", protect, async (req, res) => {
 
   const user = req.user;
@@ -57,7 +57,7 @@ router.get("/stats/:mode", protect, async (req, res) => {
   });
 
 });
-// ================= SAVE GAME =================
+//  SAVE GAME 
 router.post("/save", protect, async (req, res) => {
   try {
     const game = await Game.create({
@@ -85,7 +85,7 @@ router.post("/save", protect, async (req, res) => {
   }
 });
 
-// ================= MY GAMES =================
+//  MY GAMES 
 router.get("/my-games", protect, async (req, res) => {
   try {
 

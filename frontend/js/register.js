@@ -8,7 +8,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
   const message = document.getElementById("message");
 
-  // 🧠 Validation
+  // Validation
   if (password !== confirmPassword) {
     message.innerText = "❌ Passwords do not match";
     return;
@@ -37,7 +37,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     if (res.ok) {
       message.innerText = "✅ Account created successfully!";
 
-      // 🔥 تجربة مستخدم أفضل
+      // user 
       setTimeout(() => {
         window.location.href = "login.html";
       }, 1200);

@@ -27,7 +27,6 @@ if (!token) {
 async function loadStats() {
   try {
 
-    // 🔥 بيانات المستخدم
     const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
       headers: { Authorization: "Bearer " + token }
     });
@@ -37,7 +36,6 @@ async function loadStats() {
     document.getElementById("username").textContent =
       "👤 " + user.username;
 
-    // 🔥 الإحصائيات
     const statsRes = await fetch(
       "http://localhost:5000/api/game/stats/rapid",
       {

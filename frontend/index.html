@@ -12,10 +12,22 @@ href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.mi
 
 <body>
 
+<!-- Animated Background Effects -->
+<div class="background-effects" id="bgEffects">
+    <div class="queen-silhouette queen-silhouette-1">♛</div>
+    <div class="queen-silhouette queen-silhouette-2">♛</div>
+    <div class="queen-silhouette queen-silhouette-3">♛</div>
+    <div class="purple-glow purple-glow-1"></div>
+    <div class="purple-glow purple-glow-2"></div>
+</div>
+
 <div class="sidebar" id="sidebar"></div>
 <div id="content">
-<h2>Welcome Queen 👑</h2>
+    <h2>Welcome Queen 👑</h2>
 </div>
+
+<!-- Confetti Container -->
+<div class="confetti-container" id="confettiContainer"></div>
 
 <!-- Libraries -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -29,6 +41,21 @@ let analysisGame = null;
 let analysisMoves = [];
 let currentMoveIndex = -1;
 
+// ================= BACKGROUND PARTICLES =================
+function initBackgroundParticles() {
+    const container = document.getElementById('bgEffects');
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (12 + Math.random() * 10) + 's';
+        particle.style.width = (2 + Math.random() * 4) + 'px';
+        particle.style.height = particle.style.width;
+        container.appendChild(particle);
+    }
+}
+initBackgroundParticles();
 
 // ================= GLOBAL =================
 let engine = null;
@@ -68,6 +95,9 @@ let pendingLiveAnalysis = false;
 let pendingReviewAnalysis = false;
 let moveAnalysis = [];
 let engineBusy = false;
+let gameStartTime = null;
+let currentGameId = null;
+let gameTimerInterval = null;
 
 function goToLogin() {
   window.location.href = "login.html";
@@ -394,21 +424,29 @@ setTimeout(() => {
 // ================= GAME STATUS =================
 function checkGameStatus() {
 
-    const el = document.getElementById("gameResult");
-    if (!el) return;
-
+    const el = document.getElementById("gameStatusValue");
+    
     if (game.in_checkmate()) {
         const winner = game.turn() === "w" ? "Black" : "White";
-
-        el.innerHTML = "🏆 " + winner + " wins!";
-        saveGame(winner);
+        if (el) el.innerHTML = "🏆 " + winner + " wins!";
         board.draggable = false;
+        setTimeout(() => {
+            saveGame(winner);
+        }, 500);
     }
 
     else if (game.in_draw()) {
-        el.innerHTML = "🤝 Draw!";
-        saveGame("draw");
+        if (el) el.innerHTML = "🤝 Draw!";
         board.draggable = false;
+        setTimeout(() => {
+            saveGame("draw");
+        }, 500);
+    }
+    
+    // Update status display during game
+    if (el && !game.game_over()) {
+        const turn = game.turn() === "w" ? "White" : "Black";
+        el.innerHTML = `${turn}'s Turn`;
     }
 }
 
@@ -419,6 +457,7 @@ function saveGame(result) {
 
     if (!token) {
         console.log("❌ No token, game not saved");
+        showGameOverModal(result, "Unknown", "Unknown", 0);
         return;
     }
 
@@ -442,50 +481,206 @@ function saveGame(result) {
         if (!res.ok) throw new Error("Save failed");
         return res.json();
     })
-    .then(() => {
-
-    console.log("Game saved ✅");
-setTimeout(() => {
-
-    loadHome();
-
-}, 1000);
-    const resultBox =
-    document.getElementById(
-    "gameResult"
-    );
-
-    if(resultBox){
-
-        resultBox.innerHTML += `
-
-        <br><br>
-
-        <button
-        onclick="loadHome()"
-        style="
-        margin-top:10px;
-        ">
-
-        🏠 Back Home
-
-        </button>
-
-        <button
-        onclick="loadPlay()"
-        style="
-        margin-top:10px;
-        ">
-
-        🔄 Play Again
-
-        </button>
-        `;
-    }
-})
-    .catch(err => console.log("Save error ❌", err));
+    .then(data => {
+        console.log("Game saved ✅");
+        currentGameId = data.game?._id || data._id || null;
+        
+        // Calculate duration
+        let duration = "0m 0s";
+        if (gameStartTime) {
+            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            duration = mins + "m " + secs + "s";
+        }
+        
+        showGameOverModal(result, game.history().length, currentAccuracy, duration);
+    })
+    .catch(err => {
+        console.log("Save error ❌", err);
+        showGameOverModal(result, game.history().length, currentAccuracy, "0m 0s");
+    });
 }
 
+// ================= GAME OVER MODAL =================
+function showGameOverModal(result, moveCount, accuracy, duration) {
+    const isWin = result === playerColor.charAt(0).toUpperCase() + playerColor.slice(1);
+    const isDraw = result === "draw";
+    
+    // Determine winner/loser display
+    let winnerName, loserName, winnerIcon, loserIcon;
+    if (isDraw) {
+        winnerName = "Draw";
+        loserName = "Draw";
+        winnerIcon = "🤝";
+        loserIcon = "🤝";
+    } else {
+        if (result === "White") {
+            if (playerColor === "white") {
+                winnerName = "You";
+                loserName = "AI";
+                winnerIcon = "👑";
+                loserIcon = "🤖";
+            } else {
+                winnerName = "AI";
+                loserName = "You";
+                winnerIcon = "🤖";
+                loserIcon = "👑";
+            }
+        } else { // Black wins
+            if (playerColor === "black") {
+                winnerName = "You";
+                loserName = "AI";
+                winnerIcon = "👑";
+                loserIcon = "🤖";
+            } else {
+                winnerName = "AI";
+                loserName = "You";
+                winnerIcon = "🤖";
+                loserIcon = "👑";
+            }
+        }
+    }
+    
+    // Clear any existing overlay
+    const existingOverlay = document.querySelector('.modal-overlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    overlay.innerHTML = `
+        <div class="game-over-modal">
+            <div class="trophy-glow"></div>
+            <div class="modal-trophy">
+                ${isDraw ? "🤝" : "🏆"}
+            </div>
+            <div class="modal-title">
+                ${isDraw ? "Game Drawn" : "Game Over"}
+            </div>
+            <div class="modal-subtitle">
+                ${isDraw ? "A hard-fought battle!" : result + " wins!"}
+            </div>
+            
+            <div class="modal-players">
+                <div class="modal-player">
+                    <div class="icon">${playerColor === "white" ? "🤍" : "🖤"}</div>
+                    <div class="player-label">You</div>
+                    <div class="player-name">Player (${playerColor})</div>
+                </div>
+                <div class="modal-vs">VS</div>
+                <div class="modal-player">
+                    <div class="icon">🤖</div>
+                    <div class="player-label">AI</div>
+                    <div class="player-name">Queen Chess AI</div>
+                </div>
+            </div>
+            
+            <div class="modal-results-grid">
+                <div class="modal-result-item">
+                    <div class="label">🏆 Winner</div>
+                    <div class="value ${isDraw ? '' : (winnerName === 'You' ? 'winner' : 'loser')}">
+                        ${isDraw ? "—" : winnerName}
+                    </div>
+                </div>
+                <div class="modal-result-item">
+                    <div class="label">❌ Loser</div>
+                    <div class="value ${isDraw ? '' : (loserName === 'You' ? 'loser' : 'winner')}">
+                        ${isDraw ? "—" : loserName}
+                    </div>
+                </div>
+                <div class="modal-result-item">
+                    <div class="label">♟ Moves</div>
+                    <div class="value">${moveCount}</div>
+                </div>
+                <div class="modal-result-item">
+                    <div class="label">🎯 Accuracy</div>
+                    <div class="value">${accuracy}%</div>
+                </div>
+                <div class="modal-result-item">
+                    <div class="label">⏱ Duration</div>
+                    <div class="value">${duration}</div>
+                </div>
+                <div class="modal-result-item">
+                    <div class="label">📋 Result</div>
+                    <div class="value ${isDraw ? '' : (winnerName === 'You' ? 'winner' : 'loser')}">
+                        ${isDraw ? "Draw" : result}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="view-analysis-btn" onclick="viewGameAnalysis()">
+                    📊 View Analysis
+                </button>
+                <button class="play-again-btn" onclick="playAgain()">
+                    🔄 Play Again
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Launch confetti
+    launchConfetti();
+}
+
+function launchConfetti() {
+    const container = document.getElementById('confettiContainer');
+    container.innerHTML = '';
+    
+    const colors = ['#a855f7', '#7c3aed', '#c084fc', '#9333ea', '#fbbf24', '#22c55e', '#06b6d4', '#ef4444'];
+    const shapes = ['●', '■', '▲', '★', '♦'];
+    
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.color = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.fontSize = (8 + Math.random() * 12) + 'px';
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.animationDelay = Math.random() * 0.5 + 's';
+        container.appendChild(piece);
+    }
+    
+    // Clean up after animation
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 5000);
+}
+
+function viewGameAnalysis() {
+    // Remove modal
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) overlay.remove();
+    
+    // Load analysis directly in same page with the current game ID
+    if (currentGameId) {
+        // Clear game timer
+        if (gameTimerInterval) clearInterval(gameTimerInterval);
+        gameTimerInterval = null;
+        
+        // Navigate to analysis for this exact game
+        window.location.href = "index.html?analyze=" + currentGameId;
+    } else {
+        // Fallback: try to find the game
+        alert("Game ID not available. Check your My Games list.");
+        loadMatches();
+    }
+}
+
+function playAgain() {
+    // Remove modal
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) overlay.remove();
+    
+    // Reset and load play screen
+    game = new Chess();
+    currentGameId = null;
+    loadPlay();
+}
 
 // ================= SIDEBAR =================
 function renderSidebar() {
@@ -705,8 +900,21 @@ This is trial version; you will be notified before service is activated.
 `;
 }
 // ================= PLAY =================
+
+// Track selected color in start screen
+let selectedColor = null;
+
 function setColor(color) {
     playerColor = color;
+    selectedColor = color;
+
+    // Update UI for selected button
+    document.querySelectorAll('.color-row button').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    const buttons = document.querySelectorAll('.color-row button');
+    if (color === 'white' && buttons[0]) buttons[0].classList.add('selected');
+    if (color === 'black' && buttons[1]) buttons[1].classList.add('selected');
 
     const el = document.getElementById("gameResult");
     if (el) el.innerHTML = "Selected: " + color;
@@ -720,6 +928,12 @@ function setRandomColor(){
     : "black";
 
     playerColor = random;
+    selectedColor = random;
+
+    // Update UI
+    document.querySelectorAll('.color-row button').forEach(btn => {
+        btn.classList.remove('selected');
+    });
 
     const el =
     document.getElementById("gameResult");
@@ -731,33 +945,209 @@ function setRandomColor(){
 }
 
 function startGame() {
+    // Fade out the start card
+    const startCard = document.querySelector('.start-card');
+    if (startCard) {
+        startCard.classList.add('fade-out');
+    }
+    
+    // Record game start time
+    gameStartTime = Date.now();
+    
+    // Prepare game state
     pendingAIMove = false;
-engineBusy = false;
+    engineBusy = false;
+    gameMoves = [];
+    currentAccuracy = 0;
+    currentOpening = "Unknown Opening";
+    
     aiLevel =
-document.getElementById(
-"difficultySelect"
-).value;
+    document.getElementById(
+    "difficultySelect"
+    ).value;
     game = new Chess();
 
-    board = Chessboard('board', {
-        draggable: true,
-        position: "start",
-        orientation: playerColor,
-        onDrop: onDrop,
-onMouseoverSquare: showHints,
-onMouseoutSquare: removeHints
-    });
-
-    initEngine();
-
-    if (playerColor === "black") {
-
+    // Show the game layout
     setTimeout(() => {
+        showGameLayout();
+        
+        board = Chessboard('board', {
+            draggable: true,
+            position: "start",
+            orientation: playerColor,
+            onDrop: onDrop,
+            onMouseoverSquare: showHints,
+            onMouseoutSquare: removeHints
+        });
 
-        makeAIMove();
+        initEngine();
 
-    }, 500);
+        if (playerColor === "black") {
+
+        setTimeout(() => {
+
+            makeAIMove();
+
+        }, 500);
+        }
+    }, 400);
 }
+
+function showGameLayout() {
+    const legalChecked = beginnerHints ? 'checked' : '';
+    
+    document.getElementById("content").innerHTML = `
+        <div class="game-layout">
+            <div class="game-info-row">
+                <div class="player-info-box">
+                    <div class="avatar">${playerColor === "white" ? "🤍" : "🖤"}</div>
+                    <div class="info">
+                        <div class="name">You (${playerColor})</div>
+                    </div>
+                    <div class="timer" id="playerTimer">00:00</div>
+                </div>
+                
+                <div class="game-status-box">
+                    <div class="status-label">Game Status</div>
+                    <div class="status-value" id="gameStatusValue">
+                        ${playerColor}'s Turn
+                    </div>
+                </div>
+                
+                <div class="player-info-box">
+                    <div class="avatar">🤖</div>
+                    <div class="info">
+                        <div class="name">Queen Chess AI</div>
+                        <div style="font-size:11px;color:#999;">${aiLevel.charAt(0).toUpperCase() + aiLevel.slice(1)}</div>
+                    </div>
+                    <div class="timer" id="aiTimer">00:00</div>
+                </div>
+            </div>
+            
+            <div id="board" class="fade-in"></div>
+            
+            <div class="game-controls-bar">
+                <button onclick="undoMove()" title="Undo last move">
+                    ↩ Undo
+                </button>
+                <button onclick="getHint()" title="Get a hint from AI">
+                    💡 Hint
+                </button>
+                <button onclick="resignGame()" title="Resign the game">
+                    🏳 Resign
+                </button>
+                <label class="legal-toggle">
+                    <input type="checkbox" id="ingameLegalToggle" ${legalChecked} onchange="toggleInGameHints()">
+                    Show Legal Moves
+                </label>
+            </div>
+            
+            <div id="liveReview" class="live-review">
+                <div id="beginnerCoach" class="coach-box">
+                    💡 Beginner Coach Ready
+                </div>
+                AI Analysis Waiting...
+            </div>
+            
+            <div id="gameResult"></div>
+        </div>
+    `;
+    
+    // Start game timer
+    startGameTimer();
+}
+
+function startGameTimer() {
+    if (gameTimerInterval) clearInterval(gameTimerInterval);
+    
+    const startTime = Date.now();
+    gameTimerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+        const timeStr = mins + ':' + secs;
+        
+        const playerTimer = document.getElementById('playerTimer');
+        const aiTimer = document.getElementById('aiTimer');
+        if (playerTimer) playerTimer.textContent = timeStr;
+        if (aiTimer) aiTimer.textContent = timeStr;
+    }, 1000);
+}
+
+function toggleInGameHints() {
+    const cb = document.getElementById('ingameLegalToggle');
+    if (cb) {
+        beginnerHints = cb.checked;
+        // Update the coach display
+        const coach = document.getElementById('beginnerCoach');
+        if (coach) {
+            coach.innerHTML = beginnerHints
+                ? "💡 Beginner Coach Active"
+                : "Hints OFF";
+        }
+    }
+}
+
+function undoMove() {
+    // Undo last two moves (player + AI response)
+    if (game.history().length >= 2) {
+        game.undo();
+        game.undo();
+        board.position(game.fen());
+    } else if (game.history().length === 1) {
+        game.undo();
+        board.position(game.fen());
+    }
+}
+
+function getHint() {
+    if (!engine) return;
+    
+    // Request quick evaluation for best move suggestion
+    engine.postMessage("stop");
+    setTimeout(() => {
+        engine.postMessage("position fen " + game.fen());
+        engine.postMessage("go depth 10");
+        
+        // Show hint in coach box
+        const coach = document.getElementById('beginnerCoach');
+        if (coach) {
+            coach.innerHTML = "💡 Analyzing best move...";
+        }
+        
+        // Listen for hint
+        const hintHandler = function(event) {
+            const line = event.data;
+            if (line.startsWith("bestmove")) {
+                const move = line.split(" ")[1];
+                if (move && move.length >= 4) {
+                    const coach = document.getElementById('beginnerCoach');
+                    if (coach) {
+                        coach.innerHTML = "💡 Hint: Try " + move.substring(0,2) + " → " + move.substring(2,4);
+                    }
+                }
+                engine.removeEventListener("message", hintHandler);
+            }
+        };
+        engine.addEventListener("message", hintHandler);
+    }, 100);
+}
+
+function resignGame() {
+    if (game.game_over()) return;
+    
+    if (confirm("Are you sure you want to resign?")) {
+        const winner = playerColor === "white" ? "Black" : "White";
+        board.draggable = false;
+        
+        const statusEl = document.getElementById("gameStatusValue");
+        if (statusEl) statusEl.innerHTML = "🏳 " + winner + " wins (resignation)";
+        
+        // Save as loss for the player
+        const result = winner;
+        game = new Chess(); // Reset so save works
+        saveGame(result);
+    }
 }
 
 function showHints(square){
@@ -798,30 +1188,33 @@ function removeHints(){
 }
 
 function loadPlay() {
+    // Clear any game timer
+    if (gameTimerInterval) clearInterval(gameTimerInterval);
+    gameTimerInterval = null;
+    gameStartTime = null;
+    
+    const selectedWhite = selectedColor === 'white' ? 'selected' : '';
+    const selectedBlack = selectedColor === 'black' ? 'selected' : '';
 
     document.getElementById("content").innerHTML = `
 
-    <div class="play-wrapper">
+    <div class="start-screen-wrapper">
 
-        <div class="side-panel">
+        <div class="start-card">
 
-            <div class="analysis-card">
+            <span class="start-card-icon">♛</span>
+            <h2>Start Match</h2>
+            <p class="sub-text">
+                Choose your side, difficulty, and begin.
+            </p>
 
-                <div class="analysis-title">
-                    ♛ Start Match
-                </div>
+            <div class="color-row">
 
-               <p class="sub-text">
-Choose your side, difficulty, and start the match.
-</p>
-
-                <div class="color-row">
-
-    <button onclick="setColor('white')">
+    <button class="${selectedWhite}" onclick="setColor('white')">
         🤍 White
     </button>
 
-    <button onclick="setColor('black')">
+    <button class="${selectedBlack}" onclick="setColor('black')">
         🖤 Black
     </button>
 
@@ -833,19 +1226,11 @@ onclick="setRandomColor()">
 </button>
 
                 <!-- AI LEVEL -->
-                <div style="margin-top:20px;">
+                <div>
 <p class="difficulty-label">
 AI Difficulty
 </p>
-                    <select id="difficultySelect"
-                    style="
-                    width:100%;
-                    padding:12px;
-                    border-radius:12px;
-                    background:#1e1e2f;
-                    color:white;
-                    border:none;
-                    ">
+                    <select id="difficultySelect">
 
                        <option value="beginner">
     Beginner
@@ -872,17 +1257,15 @@ AI Difficulty
     Show Legal Moves
 </label>
 
-                <button class="start-main-btn"
+                <button class="start-btn"
                 onclick="startGame()">
-                    ▶ Start Game
+                    ▶ Start Match
                 </button>
 
                 <div id="gameResult"></div>
 
-                <div id="liveReview"
-                class="live-review">
-<div id="beginnerCoach"
-class="coach-box">
+                <div id="liveReview" class="live-review">
+<div id="beginnerCoach" class="coach-box">
 
 💡 Beginner Coach Ready
 
@@ -892,12 +1275,6 @@ class="coach-box">
                 </div>
 
             </div>
-
-        </div>
-
-        <div class="board-container">
-
-            <div id="board"></div>
 
         </div>
 
@@ -1272,10 +1649,29 @@ function jumpToMove(index){
     analyzeCurrentMove();
 }
 
+// ================= URL PARAMETER HANDLING =================
+function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const analyzeId = params.get('analyze');
+    if (analyzeId) {
+        // Clean URL without reloading
+        window.history.replaceState({}, '', window.location.pathname);
+        // Load analysis for this game
+        setTimeout(() => {
+            analyzeGame(analyzeId);
+        }, 100);
+        return;
+    }
+}
+
 // ================= INIT =================
 renderSidebar();
 
-loadHome();
+checkUrlParams();
+
+if (!window.location.search.includes('analyze')) {
+    loadHome();
+}
 </script>
 </body>
 </html>

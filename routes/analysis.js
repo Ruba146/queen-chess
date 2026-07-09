@@ -6,7 +6,7 @@ const auth = require("../middleware/authMiddleware");
 
 const { Chess } = require("chess.js");
 
-// 🔥 classify move
+// classify move
 function classifyMove(loss){
 
     if(loss <= 10)
@@ -27,76 +27,53 @@ function classifyMove(loss){
     return "Blunder";
 }
 
-// 🔥 analysis route
+// analysis route
 router.get("/:id", auth, async (req, res) => {
-
     try{
-
         const gameData =
             await Game.findById(req.params.id);
-
         if(!gameData){
-
             return res.status(404).json({
                 message:"Game not found"
             });
-
         }
 
         const chess = new Chess();
-
         let analysis = [];
-
         let mistakes = 0;
         let blunders = 0;
-
         let totalLoss = 0;
-
         for(let i = 0; i < gameData.moves.length; i++){
-
             const move =
                 gameData.moves[i];
 
-            // 🔥 مؤقتًا fake eval
+            // fake eval
             const bestEval =
                 Math.random() * 100;
-
             const playedEval =
                 Math.random() * 100;
-
             const loss =
                 Math.abs(
                     bestEval - playedEval
                 );
 
             totalLoss += loss;
-
             const classification =
                 classifyMove(loss);
-
             if(classification === "Mistake")
                 mistakes++;
-
             if(classification === "Blunder")
                 blunders++;
-
             analysis.push({
-
                 moveNumber:i + 1,
-
                 move,
-
                 classification,
-
                 loss:Math.round(loss)
-
             });
-
             chess.move(move);
-
         }
 
-        // 🔥 accuracy
+        // accuracy
         const avgLoss =
             totalLoss / gameData.moves.length;
 
@@ -106,7 +83,7 @@ router.get("/:id", auth, async (req, res) => {
                 Math.round(100 - avgLoss / 2)
             );
 
-        // 🔥 weakness
+        //  weakness
         let weakness =
             "Good player 👍";
 
@@ -123,7 +100,7 @@ router.get("/:id", auth, async (req, res) => {
 
         }
 
-        // 🔥 opening detect
+        //  opening detect
         let opening =
             "Unknown Opening";
 
@@ -148,7 +125,7 @@ router.get("/:id", auth, async (req, res) => {
 
         }
 
-        // 🔥 final response
+        //  final response
         res.json({
 
             result:gameData.result,

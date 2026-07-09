@@ -15,10 +15,10 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
     const data = await res.json();
 
-    console.log("LOGIN RESPONSE:", data); // 🔥 تشخيص
+    console.log("LOGIN RESPONSE:", data); // check 
 
     if (res.ok) {
-      // 👇 يدعم أي اسم للتوكن من السيرفر
+      // token 
       const token = data.token || data.accessToken || data.jwt;
 
       if (!token) {
@@ -28,7 +28,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
       localStorage.setItem("token", token);
 
-      console.log("TOKEN SAVED:", token); // 🔥 تأكيد
+      console.log("TOKEN SAVED:", token); // done
 
       window.location.href = "index.html";
     } else {

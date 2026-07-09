@@ -3,49 +3,49 @@ const mongoose = require("mongoose");
 const gameSchema = new mongoose.Schema(
 {
 
-  // 👤 صاحب المباراة
+  //  player who played  game
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
 
-  // ♟️ نوع المباراة
+  // type of game
   mode: {
     type: String,
     default: "rapid"
   },
 
-  // 🏆 النتيجة
+  // result
   result: {
     type: String,
     default: "unknown"
   },
 
-  // 📖 الافتتاحية
+  // oppening
   opening: {
     type: String,
     default: "Unknown Opening"
   },
 
-  // 🎯 الدقة
+  //  accuracy
   accuracy: {
     type: Number,
     default: 0
   },
 
-  // ♟️ النقلات
+  // moves
   moves: [
     {
       type: String
     }
   ],
 
-  // 📄 PGN
+  // PGN
   pgn: {
     type: String
   },
 
-  // 👥 اللاعبين
+  // players
   players: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -53,14 +53,14 @@ const gameSchema = new mongoose.Schema(
     }
   ],
 
-  // 👑 الفائز
+  // winner
   winner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     default: null
   },
 
-  // 📈 الإيلو قبل وبعد
+  // elo after and before
   ratingsBefore: {
     player1: Number,
     player2: Number

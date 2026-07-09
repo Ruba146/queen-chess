@@ -6,7 +6,7 @@ const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// ================= REGISTER =================
+// REGISTER 
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
       password: hashedPassword
     });
 
-    // 🔥 نسوي له تسجيل دخول تلقائي
+    //  sign token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
@@ -41,7 +41,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ================= LOGIN =================
+//  LOGIN 
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -77,7 +77,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ================= PROFILE =================
+//  PROFILE 
 router.get("/profile", protect, async (req, res) => {
   res.json(req.user);
 });
