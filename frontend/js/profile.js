@@ -21,7 +21,7 @@ export async function loadProfile() {
 
   try {
     const user = await apiFetch('/api/auth/profile');
-    const stats = await apiFetch('/api/game/extended-stats/rapid');
+    const stats = await apiFetch('/api/auth/extended-stats/rapid');
     state.cachedProfile = user;
 
     const name = user.displayName || user.username;
