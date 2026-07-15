@@ -8,6 +8,7 @@ const User = require("../models/User");
 
 const { calculateElo, getTier } = require("../utils/elo");
 const { performAnalysis, getRankFromRating, determinePlayerLevel } = require("../utils/analysisService");
+const { buildTrainingDatasetPayload } = require("../utils/trainingDatasetService");
 
 //  STATS 
 router.get("/stats/:mode", protect, async (req, res) => {
@@ -252,6 +253,44 @@ router.post("/save", protect, async (req, res) => {
 
     const game = await Game.create(gameData);
 
+    const trainingDatasetPayload = buildTrainingDatasetPayload({
+      userId,
+      mode,
+      result,
+      moves,
+      pgn,
+      playerColor,
+      accuracy: analysisResult ? analysisResult.accuracy : accuracy,
+      opening,
+      difficulty,
+      duration,
+      analysisResult,
+      ratingBefore,
+      newRating,
+      ratingChange: newRating - ratingBefore
+    });
+
+    await Game.create({
+      ...gameData,
+      ...trainingDatasetPayload,
+      isTrainingDataset: true,
+      parentGameId: game._id,
+      result: result,
+      moves,
+      pgn,
+      playerColor,
+      accuracy: analysisResult ? analysisResult.accuracy : accuracy,
+      opening,
+      difficulty,
+      duration,
+      ratingsBefore: { player1: ratingBefore, player2: opponentRating },
+      ratingsAfter: { player1: newRating, player2: opponentRating },
+      ratingAfterGame: newRating,
+      rankAfterGame: getRankFromRating(newRating),
+      playerLevelAfterGame: user.playerLevel,
+      ratingChange: newRating - ratingBefore
+    });
+
     res.json({
       success: true,
       game,
@@ -294,7 +333,8 @@ router.get("/my-games", protect, async (req, res) => {
   try {
 
     const games = await Game.find({
-      user: req.user._id
+      user: req.user._id,
+      isTrainingDataset: { $ne: true }
     }).sort({ createdAt: -1 });
 
     res.json(games);

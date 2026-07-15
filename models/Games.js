@@ -208,6 +208,72 @@ const gameSchema = new mongoose.Schema(
   difficulty: {
     type: String,
     default: "intermediate"
+  },
+
+  // Permanent training dataset metadata
+  isTrainingDataset: {
+    type: Boolean,
+    default: false
+  },
+
+  parentGameId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Game",
+    default: null
+  },
+
+  totalMoves: {
+    type: Number,
+    default: 0
+  },
+
+  outcome: {
+    type: String,
+    default: "unknown"
+  },
+
+  moveRecords: [{
+    moveNumber: Number,
+    move: String,
+    classification: String,
+    loss: Number,
+    evalBefore: Number,
+    evalAfter: Number,
+    phase: String
+  }],
+
+  metrics: {
+    accuracy: Number,
+    performanceScore: Number,
+    strengths: [String],
+    weaknesses: [String],
+    openingScore: Number,
+    middleGameScore: Number,
+    endgameScore: Number,
+    coachRecommendations: [String],
+    averageCentipawnLoss: Number,
+    bestMoves: Number,
+    excellentMoves: Number,
+    goodMoves: Number,
+    inaccuracies: Number,
+    mistakes: Number,
+    blunders: Number,
+    brilliantMoves: Number,
+    missedWins: Number,
+    materialBalance: Number
+  },
+
+  labels: {
+    outcome: String,
+    color: String,
+    opening: String,
+    difficulty: String
+  },
+
+  ratingSnapshot: {
+    before: Number,
+    after: Number,
+    change: Number
   }
 },
 
