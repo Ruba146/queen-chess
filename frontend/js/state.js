@@ -30,5 +30,14 @@ export const state = {
   currentGameId: null,
   gameTimerInterval: null,
   hintsEnabled: false,
-  selectedColor: null
+  selectedColor: null,
+
+  // Chess AI inference (deployed model) tracking
+  lastPredictionPlyCount: 0,
+  livePrediction: {
+    whiteWin: null,
+    blackWin: null,
+    draw: null
+  }
 };
+

@@ -86,9 +86,11 @@ export function onDrop(source, target) {
   postEngineMessage('go depth 12');
   checkGameStatus();
   updateMoveCount();
+  maybeUpdateLiveInference();
   if (!state.game.game_over()) setTimeout(() => makeAIMove(), 300);
   return move;
 }
+
 
 function checkGameStatus() {
   const status = document.getElementById('gameStatusValue');
@@ -171,7 +173,8 @@ export function startGame() {
 
 function showGameLayout() {
   const hintsActive = state.hintsEnabled ? 'active' : '';
-  document.getElementById('content').innerHTML = `<div class="game-layout"><div class="game-left"><div id="board" class="fade-in"></div><div class="game-controls-bar"><button onclick="undoMove()">↩ Undo</button><button onclick="getHint()">💡 Hint</button><button onclick="resignGame()">🏳 Resign</button><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Show Legal Moves</div></div><div id="liveReview" class="live-review"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div>AI Analysis Waiting...</div></div><div class="game-right"><div class="game-info-panel"><div class="panel-header"><h3>Game Info</h3></div><div class="game-info-row-item"><span class="label">🤍 White Timer</span><span class="value timer" id="whiteTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🖤 Black Timer</span><span class="value timer" id="blackTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🎯 Difficulty</span><span class="value">${state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1)}</span></div><div class="game-info-row-item"><span class="label">♟ Moves</span><span class="value" id="moveCount">0</span></div><div class="game-info-row-item"><span class="label">📊 Status</span><span class="status-badge" id="gameStatusValue">${state.playerColor}'s Turn</span></div><div class="game-info-row-item"><span class="label">⚔ Captured</span><span class="captured" id="capturedPieces">—</span></div></div></div></div>`;
+  document.getElementById('content').innerHTML = `<div class="game-layout"><div class="game-left"><div id="board" class="fade-in"></div><div class="game-controls-bar"><button onclick="undoMove()">↩ Undo</button><button onclick="getHint()">💡 Hint</button><button onclick="resignGame()">🏳 Resign</button><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Show Legal Moves</div></div><div id="liveReview" class="live-review"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div>AI Analysis Waiting...</div></div><div class="game-right"><div class="game-info-panel"><div class="panel-header"><h3>Game Info</h3></div><div class="game-info-row-item"><span class="label">🤍 White Timer</span><span class="value timer" id="whiteTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🖤 Black Timer</span><span class="value timer" id="blackTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🎯 Difficulty</span><span class="value">${state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1)}</span></div><div class="game-info-row-item"><span class="label">♟ Moves</span><span class="value" id="moveCount">0</span></div><div class="game-info-row-item"><span class="label">📊 Status</span><span class="status-badge" id="gameStatusValue">${state.playerColor}'s Turn</span></div><div class="game-info-row-item"><span class="label">⚔ Captured</span><span class="captured" id="capturedPieces">—</span></div><div class="game-info-row-item"><span class="label">🤍 White Win %</span><span class="captured" id="whiteWinPct">—</span></div><div class="game-info-row-item"><span class="label">🖤 Black Win %</span><span class="captured" id="blackWinPct">—</span></div><div class="game-info-row-item"><span class="label">🤝 Draw %</span><span class="captured" id="drawPct">—</span></div></div></div></div>`;
+
   startGameTimer();
 }
 
@@ -244,6 +247,93 @@ export function updateMoveCount() {
   const moveCount = document.getElementById('moveCount');
   if (moveCount) moveCount.textContent = state.game.history().length;
 }
+
+function setWinPctUI({ whiteWin, blackWin, draw }) {
+  const whiteEl = document.getElementById('whiteWinPct');
+  const blackEl = document.getElementById('blackWinPct');
+  const drawEl = document.getElementById('drawPct');
+  if (whiteEl) whiteEl.textContent = whiteWin == null ? '—' : `${whiteWin.toFixed(2)}%`;
+  if (blackEl) blackEl.textContent = blackWin == null ? '—' : `${blackWin.toFixed(2)}%`;
+  if (drawEl) drawEl.textContent = draw == null ? '—' : `${draw.toFixed(2)}%`;
+}
+
+function getOpeningFromFirstPlyMoves(first10Ply) {
+  // Fast best-effort mapping; real backend can do richer opening detection.
+  const joined = first10Ply.map((m) => m.san).join(' ');
+  if (joined.includes('e4 e5 Nf3 Nc6 Bb5')) return { opening_name: "Ruy Lopez", opening_eco: 'C60' };
+  if (joined.includes('e4 e5 Nf3 Nc6 Bc4')) return { opening_name: "Italian Game", opening_eco: 'C50' };
+  if (joined.includes('e4 e5 Nf3 Nf6')) return { opening_name: "Petrov's Defense", opening_eco: 'C42' };
+  if (joined.includes('e4 e5 f4')) return { opening_name: "King's Gambit", opening_eco: 'C30' };
+  if (joined.includes('e4 c5')) return { opening_name: 'Sicilian Defense', opening_eco: 'B20' };
+  if (joined.includes('e4 e6')) return { opening_name: 'French Defense', opening_eco: 'C00' };
+  if (joined.includes('e4 c6')) return { opening_name: 'Caro-Kann Defense', opening_eco: 'B10' };
+  if (joined.includes('e4 d5')) return { opening_name: 'Scandinavian Defense', opening_eco: 'B01' };
+  if (joined.includes('d4 d5 c4')) return { opening_name: "Queen's Gambit", opening_eco: 'D00' };
+  return { opening_name: 'Unknown Opening', opening_eco: 'Unknown' };
+}
+
+async function maybeUpdateLiveInference() {
+  const ply = state.game.history().length;
+  if (ply < 10) return;
+  if (state.lastPredictionPlyCount === ply) return;
+  state.lastPredictionPlyCount = ply;
+
+  // Only send the first 10 half-moves (ply)
+  const history = state.game.history();
+  const first10PlySan = history.slice(0, 10);
+
+  // Deployed API expects strings (not objects)
+  const first10_moves = first10PlySan;
+
+
+  // Ratings: best-effort fallbacks (this project currently doesn't track per-side live ratings in state)
+  const white_rating = state.whiteRating ?? 1200;
+  const black_rating = state.blackRating ?? 1200;
+
+  const { opening_name, opening_eco } = getOpeningFromFirstPlyMoves(first10PlySan.map((san) => ({ san })));
+
+  const payload = {
+    first_10_moves,
+    white_rating,
+    black_rating,
+    opening_name,
+    opening_eco
+  };
+
+  try {
+    const res = await fetch('https://chess-ai-6gwx.onrender.com/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`Inference API error: ${res.status}`);
+
+    const data = await res.json();
+
+    // Expected shape: { white_win_pct, black_win_pct, draw_pct } OR { whiteWinPct, ... }
+    const whiteWinRaw = data.white_win_pct ?? data.whiteWinPct ?? data.whiteWin ?? data.white_win ?? data.white_probability ?? null;
+    const blackWinRaw = data.black_win_pct ?? data.blackWinPct ?? data.blackWin ?? data.black_win ?? data.black_probability ?? null;
+    const drawRaw = data.draw_pct ?? data.drawPct ?? data.draw ?? data.draw_probability ?? null;
+
+    // API seems to return probabilities in [0..1]; convert to percent for display.
+    const whiteWin = whiteWinRaw == null ? null : (whiteWinRaw <= 1 ? whiteWinRaw * 100 : whiteWinRaw);
+    const blackWin = blackWinRaw == null ? null : (blackWinRaw <= 1 ? blackWinRaw * 100 : blackWinRaw);
+    const draw = drawRaw == null ? null : (drawRaw <= 1 ? drawRaw * 100 : drawRaw);
+
+
+    state.livePrediction.whiteWin = whiteWin;
+    state.livePrediction.blackWin = blackWin;
+    state.livePrediction.draw = draw;
+
+    setWinPctUI({ whiteWin, blackWin, draw });
+  } catch (e) {
+    // Silent fail: keep UI as-is or show dashes
+    setWinPctUI({ whiteWin: null, blackWin: null, draw: null });
+  }
+}
+
+
 
 export function showHints(square) {
   if (!state.hintsEnabled) return;
