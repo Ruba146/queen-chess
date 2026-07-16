@@ -300,6 +300,7 @@ async function maybeUpdateLiveInference() {
     opening_eco
   };
 
+
   try {
     const res = await fetch('https://chess-ai-6gwx.onrender.com/predict', {
       method: 'POST',
