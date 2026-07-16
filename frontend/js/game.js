@@ -86,7 +86,9 @@ export function onDrop(source, target) {
   postEngineMessage('go depth 12');
   checkGameStatus();
   updateMoveCount();
+  console.log('PLY:', state.game.history().length);
   maybeUpdateLiveInference();
+
   if (!state.game.game_over()) setTimeout(() => makeAIMove(), 300);
   return move;
 }
@@ -282,8 +284,10 @@ async function maybeUpdateLiveInference() {
   const history = state.game.history();
   const first10PlySan = history.slice(0, 10);
 
-  // Deployed API expects strings (not objects)
-  const first10_moves = first10PlySan;
+  const first_10_moves = state.game
+    .history()
+    .slice(0, 10);
+
 
 
   // Ratings: best-effort fallbacks (this project currently doesn't track per-side live ratings in state)
@@ -301,8 +305,11 @@ async function maybeUpdateLiveInference() {
   };
 
 
+  console.log('Calling AI...');
   try {
     const res = await fetch('https://chess-ai-6gwx.onrender.com/predict', {
+
+
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
