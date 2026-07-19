@@ -93,7 +93,6 @@ export function onDrop(source, target) {
 
   checkGameStatus();
   updateMoveCount();
-  maybeUpdateLiveInference();
 
   if (!state.game.game_over()) setTimeout(() => makeAIMove(), 300);
 
@@ -288,6 +287,7 @@ function getOpeningFromFirstPlyMoves(first10Ply) {
 async function maybeUpdateLiveInference() {
   const ply = state.game.history().length;
   // Prediction must run exactly once after 10 plies (10 half-moves)
+  if (ply < 10) return;
   if (ply !== 10) return;
   if (state.lastPredictionPlyCount === 10) return;
   state.lastPredictionPlyCount = 10;
@@ -421,6 +421,7 @@ function initGameEngine() {
         state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
         state.board.position(state.game.fen());
         checkGameStatus();
+        maybeUpdateLiveInference();
       }
 
       state.pendingAIMove = false;
