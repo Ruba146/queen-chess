@@ -441,12 +441,14 @@ function initGameEngine() {
         state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
         state.board.position(state.game.fen());
         checkGameStatus();
-        maybeUpdateLiveInference();
       }
 
       state.pendingAIMove = false;
       state.waitingBestmove = false;
       state.engineBusy = false;
+
+      // After Stockfish is settled and flags are cleared, update prediction
+      maybeUpdateLiveInference();
     }
   }, 'game');
 }
