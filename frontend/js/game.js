@@ -284,7 +284,7 @@ function getOpeningFromFirstPlyMoves(first10Ply) {
   return { opening_name: 'Unknown Opening', opening_eco: 'Unknown' };
 }
 
-function maybeUpdateLiveInference() {
+async function maybeUpdateLiveInference() {
   const ply = state.game.history().length;
 
   // First prediction should happen after 10 full moves => 20 plies
@@ -381,6 +381,7 @@ function maybeUpdateLiveInference() {
     state.livePredictionInFlight = false;
   }
 }
+
 
 export function showHints(square) {
   if (!state.hintsEnabled) return;
