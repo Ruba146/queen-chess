@@ -264,14 +264,17 @@ export function playAnalysisMove() {
 
 export function analyzeCurrentMove() {
   if (state.currentMoveIndex < 0 || !state.engine || state.engineBusy) return;
+
   state.engineBusy = true;
-  state.engine.postMessage('stop');
+
+  // Avoid interrupting other single-flight searches; do not call 'stop' here.
   setTimeout(() => {
-    state.engine.postMessage('position fen ' + state.analysisGame.fen());
     state.pendingReviewAnalysis = true;
+    state.engine.postMessage('position fen ' + state.analysisGame.fen());
     state.engine.postMessage('go depth 12');
-  }, 100);
+  }, 0);
 }
+
 
 export function renderMovesList() {
   let html = '';

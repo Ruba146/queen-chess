@@ -37,32 +37,30 @@ export function setRandomColor() {
 }
 
 function makeAIMove() {
-  console.log('[makeAIMove] enter pendingAIMove(before):', state.pendingAIMove, 'engineReady:', state.engineReady, 'engineBusy:', state.engineBusy);
-  if (!state.game || state.game.game_over()) {
-    console.log('[makeAIMove] exit (no game or game over)');
-    return;
-  }
+  if (!state.game || state.game.game_over()) return;
   if (!state.engine) {
-    console.log('[makeAIMove] exit (no engine) -> initStockfishEngine');
     initStockfishEngine(() => makeAIMove());
     return;
   }
-  state.pendingAIMove = true;
-  console.log('[makeAIMove] pendingAIMove set true');
+
+  // Strict single-flight: only one active go at a time.
+  if (!state.engineReady || state.waitingBestmove) return;
 
   const level = state.aiSettings[state.aiLevel] || state.aiSettings.intermediate;
   const fen = state.game.fen();
-  console.log('[makeAIMove] fen:', fen, 'level:', level);
 
-  postEngineMessage('stop');
-  console.log('[makeAIMove] posted stop');
+  state.stockfishSearchId += 1;
+  const searchId = state.stockfishSearchId;
+  state.activeSearchId = searchId;
+
+  state.waitingBestmove = true;
+  state.pendingAIMove = true;
+
   postEngineMessage('position fen ' + fen);
-  console.log('[makeAIMove] posted position');
   postEngineMessage('setoption name Skill Level value ' + level.skill);
-  console.log('[makeAIMove] posted setoption Skill Level', level.skill);
   postEngineMessage('go depth ' + level.depth);
-  console.log('[makeAIMove] posted go depth', level.depth);
 }
+
 
 
 export function toggleHints() {
@@ -256,7 +254,7 @@ export function undoMove() {
 
 export function getHint() {
   if (!state.engine) return;
-  postEngineMessage('stop');
+  // Don't stop/interrupt the single-flight AI move search.
   setTimeout(() => {
     postEngineMessage('position fen ' + state.game.fen());
     postEngineMessage('go depth 10');
@@ -461,20 +459,20 @@ function initGameEngine() {
       document.getElementById('moveReview').innerHTML = `<div class="move-review-box"><h4>Move ${state.currentMoveIndex + 1}</h4><div class="eval" style="color:${color}">${title}</div><div class="quality">Move: ${state.analysisMoves[state.currentMoveIndex]} | Eval: ${(score / 100).toFixed(2)}</div></div>`;
       state.pendingReviewAnalysis = false;
     }
-    if (line.includes('bestmove')) {
-      console.log('[engine listener] received bestmove line, pendingAIMove:', state.pendingAIMove, 'line:', line);
+    if (state.pendingAIMove && line.startsWith('bestmove')) {
+      const move = line.split(' ')[1];
+      if (move !== '(none)' && move && move.length >= 4) {
+        state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
+        state.board.position(state.game.fen());
+        checkGameStatus();
+      }
+
+      // Single-flight completion
+      state.pendingAIMove = false;
+      state.waitingBestmove = false;
       state.engineBusy = false;
     }
-    if (state.pendingAIMove && line.startsWith('bestmove')) {
-      console.log('[engine listener] applying bestmove. pendingAIMove:', state.pendingAIMove, 'line:', line);
-      const move = line.split(' ')[1];
 
-      if (move === '(none)' || move.length < 4) return;
-      state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
-      state.board.position(state.game.fen());
-      checkGameStatus();
-      state.pendingAIMove = false;
-    }
   });
 }
 

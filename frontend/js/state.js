@@ -23,9 +23,16 @@ export const state = {
   pendingLiveAnalysis: false,
   pendingReviewAnalysis: false,
   moveAnalysis: [],
+
   engineBusy: false,
   engineReady: false,
   engineMessageQueue: [],
+
+  // Stockfish single-flight (go -> bestmove) control
+  waitingBestmove: false,
+  activeSearchId: 0,
+  stockfishSearchId: 0,
+
   gameStartTime: null,
   currentGameId: null,
   gameTimerInterval: null,
