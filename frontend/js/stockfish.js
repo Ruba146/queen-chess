@@ -23,12 +23,17 @@ export function initEngine(onMessage) {
   state.engine = new Worker('stockfish.js');
   state.engine.addEventListener('message', (event) => {
     const line = event.data;
+    // Trace engine worker output without changing move logic.
+    if (typeof line === 'string' && (line === 'readyok' || line.startsWith('bestmove') || line.startsWith('info'))) {
+      console.log('[stockfish worker] line:', line);
+    }
     engineListeners.forEach((listener) => listener(line));
     if (line === 'readyok') {
       state.engineReady = true;
       flushEngineQueue();
     }
   });
+
 
   state.engine.postMessage('uci');
   state.engine.postMessage('isready');

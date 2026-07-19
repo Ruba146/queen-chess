@@ -37,19 +37,33 @@ export function setRandomColor() {
 }
 
 function makeAIMove() {
-  if (!state.game || state.game.game_over()) return;
+  console.log('[makeAIMove] enter pendingAIMove(before):', state.pendingAIMove, 'engineReady:', state.engineReady, 'engineBusy:', state.engineBusy);
+  if (!state.game || state.game.game_over()) {
+    console.log('[makeAIMove] exit (no game or game over)');
+    return;
+  }
   if (!state.engine) {
+    console.log('[makeAIMove] exit (no engine) -> initStockfishEngine');
     initStockfishEngine(() => makeAIMove());
     return;
   }
   state.pendingAIMove = true;
+  console.log('[makeAIMove] pendingAIMove set true');
+
   const level = state.aiSettings[state.aiLevel] || state.aiSettings.intermediate;
   const fen = state.game.fen();
+  console.log('[makeAIMove] fen:', fen, 'level:', level);
+
   postEngineMessage('stop');
+  console.log('[makeAIMove] posted stop');
   postEngineMessage('position fen ' + fen);
+  console.log('[makeAIMove] posted position');
   postEngineMessage('setoption name Skill Level value ' + level.skill);
+  console.log('[makeAIMove] posted setoption Skill Level', level.skill);
   postEngineMessage('go depth ' + level.depth);
+  console.log('[makeAIMove] posted go depth', level.depth);
 }
+
 
 export function toggleHints() {
   state.hintsEnabled = !state.hintsEnabled;
@@ -68,9 +82,17 @@ export function updateBeginnerCoach(move) {
 }
 
 export function onDrop(source, target) {
-  if (state.pendingAIMove) return 'snapback';
+  console.log('[onDrop] enter pendingAIMove:', state.pendingAIMove, 'turn:', state.game?.turn?.());
+  if (state.pendingAIMove) {
+    console.log('[onDrop] early return snapback because pendingAIMove is true');
+    return 'snapback';
+  }
   const piece = state.game.get(source);
-  if (!piece || piece.color !== state.playerColor[0] || state.game.turn() !== state.playerColor[0]) return 'snapback';
+  if (!piece || piece.color !== state.playerColor[0] || state.game.turn() !== state.playerColor[0]) {
+    console.log('[onDrop] snapback due to invalid piece/turn. piece:', piece, 'playerColor:', state.playerColor);
+    return 'snapback';
+  }
+
 
   const move = state.game.move({ from: source, to: target, promotion: 'q' });
   if (move === null) return 'snapback';
@@ -82,8 +104,11 @@ export function onDrop(source, target) {
   const pgn = state.game.pgn();
   if (pgn.includes('e4 e5 Nf3 Nc6 Bb5')) state.currentOpening = 'Ruy Lopez';
   postEngineMessage('position fen ' + state.game.fen());
+  console.log('[onDrop] posted live position fen', state.game.fen());
   state.pendingLiveAnalysis = true;
   postEngineMessage('go depth 12');
+  console.log('[onDrop] posted live go depth 12');
+
   checkGameStatus();
   updateMoveCount();
   console.log('PLY:', state.game.history().length);
@@ -436,9 +461,14 @@ function initGameEngine() {
       document.getElementById('moveReview').innerHTML = `<div class="move-review-box"><h4>Move ${state.currentMoveIndex + 1}</h4><div class="eval" style="color:${color}">${title}</div><div class="quality">Move: ${state.analysisMoves[state.currentMoveIndex]} | Eval: ${(score / 100).toFixed(2)}</div></div>`;
       state.pendingReviewAnalysis = false;
     }
-    if (line.includes('bestmove')) state.engineBusy = false;
+    if (line.includes('bestmove')) {
+      console.log('[engine listener] received bestmove line, pendingAIMove:', state.pendingAIMove, 'line:', line);
+      state.engineBusy = false;
+    }
     if (state.pendingAIMove && line.startsWith('bestmove')) {
+      console.log('[engine listener] applying bestmove. pendingAIMove:', state.pendingAIMove, 'line:', line);
       const move = line.split(' ')[1];
+
       if (move === '(none)' || move.length < 4) return;
       state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
       state.board.position(state.game.fen());
