@@ -4,7 +4,13 @@ export const state = {
   analysisMoves: [],
   currentMoveIndex: -1,
   cachedProfile: null,
-  engine: null,
+
+  // Stockfish engine workers (dual-engine architecture)
+  // - gameEngine: gameplay only
+  // - analysisEngine: post-game analysis only
+  gameEngine: null,
+  analysisEngine: null,
+
   board: null,
   game: new window.Chess(),
   playerColor: 'white',
@@ -15,6 +21,7 @@ export const state = {
     advanced: { skill: 10, depth: 6 },
     master: { skill: 20, depth: 14 }
   },
+
   currentAccuracy: 0,
   currentOpening: 'Unknown Opening',
   moveReviews: [],
@@ -24,11 +31,12 @@ export const state = {
   pendingReviewAnalysis: false,
   moveAnalysis: [],
 
+  // Legacy engine fields (some pages may still reference these)
   engineBusy: false,
   engineReady: false,
   engineMessageQueue: [],
 
-  // Stockfish single-flight (go -> bestmove) control
+  // Stockfish single-flight (go -> bestmove) control (legacy)
   waitingBestmove: false,
   activeSearchId: 0,
   stockfishSearchId: 0,

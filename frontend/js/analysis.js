@@ -1,6 +1,11 @@
 import { state } from './state.js';
 import { apiFetch } from './utils.js';
-import { initEngine } from './stockfish.js';
+import { initEngine, postEngineMessage } from './stockfish.js';
+
+// Ensure we only ever use the analysis worker for post-game analysis.
+const ANALYSIS_DEPTH = 12;
+
+
 
 export async function analyzeGame(gameId) {
   try {
@@ -222,8 +227,10 @@ export async function analyzeGameLegacy(gameId) {
   document.getElementById('content').innerHTML = `<div class="analysis-layout"><div class="analysis-left"><div class="game-summary-card"><h3>Game Summary</h3><div class="summary-stat"><span class="label">🎯 Accuracy</span><span class="value">${gameData.accuracy || 0}%</span></div><div class="summary-stat"><span class="label">♟ Moves</span><span class="value">${gameData.moves?.length || 0}</span></div><div class="summary-stat"><span class="label">🏆 Result</span><span class="value">${gameData.result || 'Unknown'}</span></div><div class="summary-stat"><span class="label">📖 Opening</span><span class="value">${gameData.opening || 'Unknown'}</span></div><div id="moveReview" class="move-review-box"><h4 style="color:#aaa;">Current Move</h4><p style="color:#666;font-size:11px;">Click Next to begin</p></div></div><button class="back-btn-sm" onclick="loadMatches()" style="margin-top:4px;">← Back to Games</button></div><div class="analysis-center"><div id="analysisBoard"></div><div class="move-center-buttons"><button onclick="previousMove()">← Previous</button><button onclick="playAnalysisMove()">▶ Play</button><button onclick="nextMove()">Next →</button></div></div><div class="analysis-right"><div class="moves-list-panel"><h4>Game Moves</h4><div id="movesList"></div></div></div></div>`;
 
   state.analysisGame = new window.Chess();
-  if (!state.engine) initEngine(() => {});
+  // Analysis-only engine (independent worker)
+  initEngine(() => {}, 'analysis');
   state.analysisMoves = gameData.moves || [];
+
   renderMovesList();
   state.currentMoveIndex = -1;
   state.analysisBoard = window.Chessboard('analysisBoard', { position: 'start', draggable: false, orientation: gameData.playerColor === 'black' ? 'black' : 'white' });
@@ -263,17 +270,21 @@ export function playAnalysisMove() {
 }
 
 export function analyzeCurrentMove() {
-  if (state.currentMoveIndex < 0 || !state.engine || state.engineBusy) return;
+  if (state.currentMoveIndex < 0 || state.engineBusy) return;
 
   state.engineBusy = true;
 
-  // Avoid interrupting other single-flight searches; do not call 'stop' here.
   setTimeout(() => {
     state.pendingReviewAnalysis = true;
-    state.engine.postMessage('position fen ' + state.analysisGame.fen());
-    state.engine.postMessage('go depth 12');
+    // Send to analysisEngine (independent worker)
+    postEngineMessage('position fen ' + state.analysisGame.fen(), 'analysis');
+    postEngineMessage('go depth 12', 'analysis');
   }, 0);
+
 }
+
+
+
 
 
 export function renderMovesList() {
