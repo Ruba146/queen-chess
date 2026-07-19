@@ -7,108 +7,147 @@ export async function analyzeGame(gameId) {
     const analysis = await apiFetch('/api/analysis/' + gameId);
     const gameData = analysis;
 
+    // Build a final page with TWO tabs:
+    // - Analysis: keep current AI Performance Report
+    // - Moves: restore legacy move viewer (with Stockfish move analysis)
     document.getElementById('content').innerHTML = `
-      <div class="ai-report">
-          <div class="report-header">
-              <h2>📊 AI Performance Report</h2>
-              <div class="report-subtitle">${gameData.opening || 'Unknown Opening'} • ${gameData.totalMoves || 0} moves • ${gameData.accuracy || 0}% accuracy</div>
-              <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
-                  <span class="rank-badge ${(gameData.rankAfterGame || 'beginner').toLowerCase()}">🏅 ${gameData.rankAfterGame || 'Beginner'}</span>
-                  <span class="level-badge ${(gameData.playerLevelAfterGame || 'beginner').toLowerCase()}">📊 ${gameData.playerLevelAfterGame || 'Beginner'}</span>
-                  ${gameData.ratingChange !== undefined ? `<span style="color:${gameData.ratingChange > 0 ? '#22c55e' : gameData.ratingChange < 0 ? '#ef4444' : '#aaa'};font-weight:600;">Rating: ${gameData.ratingChange > 0 ? '+' : ''}${gameData.ratingChange}</span>` : ''}
-              </div>
-          </div>
-          <div class="report-section report-full-width">
-              <h3>📋 Overview</h3>
-              <div class="report-grid">
-                  <div class="report-item"><div class="item-label">🎯 Accuracy</div><div class="item-value" style="color:${gameData.accuracy >= 80 ? '#22c55e' : gameData.accuracy >= 60 ? '#fbbf24' : '#ef4444'}">${gameData.accuracy || 0}%</div></div>
-                  <div class="report-item"><div class="item-label">📊 Performance</div><div class="item-value" style="color:${gameData.performanceScore >= 80 ? '#22c55e' : gameData.performanceScore >= 60 ? '#fbbf24' : '#ef4444'}">${gameData.performanceScore || 0}%</div></div>
-                  <div class="report-item"><div class="item-label">♟ Total Moves</div><div class="item-value">${gameData.totalMoves || 0}</div></div>
-                  <div class="report-item"><div class="item-label">🎮 Playing Style</div><div class="item-value" style="font-size:16px;">${gameData.playingStyle || 'Balanced'}</div></div>
-                  <div class="report-item"><div class="item-label">📉 Avg Centipawn Loss</div><div class="item-value">${gameData.averageCentipawnLoss || 0}</div></div>
-                  <div class="report-item"><div class="item-label">💎 Brilliant Moves</div><div class="item-value" style="color:#06b6d4;">${gameData.brilliantMoves || 0}</div></div>
-                  <div class="report-item"><div class="item-label">✅ Best Moves</div><div class="item-value" style="color:#22c55e;">${gameData.bestMoves || 0}</div></div>
-                  <div class="report-item"><div class="item-label">⚡ Inaccuracies</div><div class="item-value" style="color:#f97316;">${gameData.inaccuracies || 0}</div></div>
-                  <div class="report-item"><div class="item-label">⚠ Mistakes</div><div class="item-value" style="color:#f97316;">${gameData.mistakes || 0}</div></div>
-                  <div class="report-item"><div class="item-label">❌ Blunders</div><div class="item-value" style="color:#ef4444;">${gameData.blunders || 0}</div></div>
-                  <div class="report-item"><div class="item-label">🎯 Missed Wins</div><div class="item-value" style="color:#ef4444;">${gameData.missedWins || 0}</div></div>
-                  <div class="report-item"><div class="item-label">🏆 Result</div><div class="item-value">${gameData.result || 'Unknown'}</div></div>
-              </div>
-          </div>
-          <div class="report-section report-full-width">
-              <h3>🎯 Game Phase Analysis</h3>
-              <div class="phase-score">
-                  <div class="phase-name">📖 Opening</div>
-                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.openingScore || 50}%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div>
-                  <div class="phase-value" style="color:#a855f7;">${gameData.openingScore || 50}%</div>
-              </div>
-              <div class="phase-score">
-                  <div class="phase-name">⚔ Middle Game</div>
-                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.middleGameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
-                  <div class="phase-value" style="color:#c084fc;">${gameData.middleGameScore || 50}%</div>
-              </div>
-              <div class="phase-score">
-                  <div class="phase-name">♚ Endgame</div>
-                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.endgameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#e879f9);"></div></div>
-                  <div class="phase-value" style="color:#e879f9;">${gameData.endgameScore || 50}%</div>
-              </div>
-          </div>
-          <div class="report-grid-dashboard">
-              ${gameData.strengths && gameData.strengths.length > 0 ? `
-              <div class="report-section">
-                  <h3>💪 Strengths</h3>
-                  ${gameData.strengths.map((item) => `<div class="strength-item">✓ ${item}</div>`).join('')}
-              </div>` : ''}
-              ${gameData.weaknesses && gameData.weaknesses.length > 0 ? `
-              <div class="report-section">
-                  <h3>⚠ Areas to Improve</h3>
-                  ${gameData.weaknesses.map((item) => `<div class="weakness-item">✗ ${item}</div>`).join('')}
-              </div>` : ''}
-          </div>
-          <div class="report-grid-dashboard">
-              <div class="report-section">
-                  <h3>🎯 Performance Metrics</h3>
-                  <div class="report-grid" style="grid-template-columns:1fr 1fr;">
-                      <div class="report-item"><div class="item-label">Tactical Ability</div><div class="item-value" style="font-size:16px;">${gameData.tacticalAbilityScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Positional Play</div><div class="item-value" style="font-size:16px;">${gameData.positionalPlayScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Decision Making</div><div class="item-value" style="font-size:16px;">${gameData.decisionMakingScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Consistency</div><div class="item-value" style="font-size:16px;">${gameData.consistencyScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Piece Activity</div><div class="item-value" style="font-size:16px;">${gameData.pieceActivityScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">King Safety</div><div class="item-value" style="font-size:16px;">${gameData.kingSafetyScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Endgame Quality</div><div class="item-value" style="font-size:16px;">${gameData.endgameQualityScore || 50}%</div></div>
-                      <div class="report-item"><div class="item-label">Material Balance</div><div class="item-value" style="font-size:16px;">${gameData.materialBalance || 0}</div></div>
+      <div class="analysis-tabs-page">
+        <div class="tabs-bar" style="display:flex;gap:10px;justify-content:center;margin:16px 0;flex-wrap:wrap;">
+          <button class="tab-btn" id="tabBtnAnalysis" onclick="openAnalysisTab('analysis')" style="padding:10px 16px;border-radius:12px;border:1px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.15);color:#e9d5ff;cursor:pointer;">Analysis</button>
+          <button class="tab-btn" id="tabBtnMoves" onclick="openAnalysisTab('moves')" style="padding:10px 16px;border-radius:12px;border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.10);color:#d1fae5;cursor:pointer;">Moves</button>
+        </div>
+
+        <div id="analysisTab" class="analysis-tab" style="display:block;">
+          <div class="ai-report">
+              <div class="report-header">
+                  <h2>📊 AI Performance Report</h2>
+                  <div class="report-subtitle">${gameData.opening || 'Unknown Opening'} • ${gameData.totalMoves || 0} moves • ${gameData.accuracy || 0}% accuracy</div>
+                  <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+                      <span class="rank-badge ${(gameData.rankAfterGame || 'beginner').toLowerCase()}">🏅 ${gameData.rankAfterGame || 'Beginner'}</span>
+                      <span class="level-badge ${(gameData.playerLevelAfterGame || 'beginner').toLowerCase()}">📊 ${gameData.playerLevelAfterGame || 'Beginner'}</span>
+                      ${gameData.ratingChange !== undefined ? `<span style="color:${gameData.ratingChange > 0 ? '#22c55e' : gameData.ratingChange < 0 ? '#ef4444' : '#aaa'};font-weight:600;">Rating: ${gameData.ratingChange > 0 ? '+' : ''}${gameData.ratingChange}</span>` : ''}
                   </div>
               </div>
-              ${gameData.coachRecommendations && gameData.coachRecommendations.length > 0 ? `
-              <div class="report-section">
-                  <h3>🎯 Coach Recommendations</h3>
-                  ${gameData.coachRecommendations.map((item) => `<div class="coach-item">💡 ${item}</div>`).join('')}
-              </div>` : ''}
-          </div>
-          <div class="report-section report-full-width">
-              <h3>📈 Evaluation Graph</h3>
-              <div class="graph-container" id="evalGraphContainer">
-                  <canvas id="evalCanvas" class="graph-canvas"></canvas>
+              <div class="report-section report-full-width">
+                  <h3>📋 Overview</h3>
+                  <div class="report-grid">
+                      <div class="report-item"><div class="item-label">🎯 Accuracy</div><div class="item-value" style="color:${gameData.accuracy >= 80 ? '#22c55e' : gameData.accuracy >= 60 ? '#fbbf24' : '#ef4444'}">${gameData.accuracy || 0}%</div></div>
+                      <div class="report-item"><div class="item-label">📊 Performance</div><div class="item-value" style="color:${gameData.performanceScore >= 80 ? '#22c55e' : gameData.performanceScore >= 60 ? '#fbbf24' : '#ef4444'}">${gameData.performanceScore || 0}%</div></div>
+                      <div class="report-item"><div class="item-label">♟ Total Moves</div><div class="item-value">${gameData.totalMoves || 0}</div></div>
+                      <div class="report-item"><div class="item-label">🎮 Playing Style</div><div class="item-value" style="font-size:16px;">${gameData.playingStyle || 'Balanced'}</div></div>
+                      <div class="report-item"><div class="item-label">📉 Avg Centipawn Loss</div><div class="item-value">${gameData.averageCentipawnLoss || 0}</div></div>
+                      <div class="report-item"><div class="item-label">💎 Brilliant Moves</div><div class="item-value" style="color:#06b6d4;">${gameData.brilliantMoves || 0}</div></div>
+                      <div class="report-item"><div class="item-label">✅ Best Moves</div><div class="item-value" style="color:#22c55e;">${gameData.bestMoves || 0}</div></div>
+                      <div class="report-item"><div class="item-label">⚡ Inaccuracies</div><div class="item-value" style="color:#f97316;">${gameData.inaccuracies || 0}</div></div>
+                      <div class="report-item"><div class="item-label">⚠ Mistakes</div><div class="item-value" style="color:#f97316;">${gameData.mistakes || 0}</div></div>
+                      <div class="report-item"><div class="item-label">❌ Blunders</div><div class="item-value" style="color:#ef4444;">${gameData.blunders || 0}</div></div>
+                      <div class="report-item"><div class="item-label">🎯 Missed Wins</div><div class="item-value" style="color:#ef4444;">${gameData.missedWins || 0}</div></div>
+                      <div class="report-item"><div class="item-label">🏆 Result</div><div class="item-value">${gameData.result || 'Unknown'}</div></div>
+                  </div>
               </div>
-              <div class="graph-labels">
-                  <span>Move 1</span>
-                  <span style="color:#22c55e;">Best Line</span>
-                  <span style="color:#a855f7;">Your Moves</span>
-                  <span>Move ${gameData.totalMoves || 0}</span>
+              <div class="report-section report-full-width">
+                  <h3>🎯 Game Phase Analysis</h3>
+                  <div class="phase-score">
+                      <div class="phase-name">📖 Opening</div>
+                      <div class="phase-bar"><div class="phase-fill" style="width:${gameData.openingScore || 50}%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div>
+                      <div class="phase-value" style="color:#a855f7;">${gameData.openingScore || 50}%</div>
+                  </div>
+                  <div class="phase-score">
+                      <div class="phase-name">⚔ Middle Game</div>
+                      <div class="phase-bar"><div class="phase-fill" style="width:${gameData.middleGameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
+                      <div class="phase-value" style="color:#c084fc;">${gameData.middleGameScore || 50}%</div>
+                  </div>
+                  <div class="phase-score">
+                      <div class="phase-name">♚ Endgame</div>
+                      <div class="phase-bar"><div class="phase-fill" style="width:${gameData.endgameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#e879f9);"></div></div>
+                      <div class="phase-value" style="color:#e879f9;">${gameData.endgameScore || 50}%</div>
+                  </div>
               </div>
+              <div class="report-grid-dashboard">
+                  ${gameData.strengths && gameData.strengths.length > 0 ? `
+                  <div class="report-section">
+                      <h3>💪 Strengths</h3>
+                      ${gameData.strengths.map((item) => `<div class="strength-item">✓ ${item}</div>`).join('')}
+                  </div>` : ''}
+                  ${gameData.weaknesses && gameData.weaknesses.length > 0 ? `
+                  <div class="report-section">
+                      <h3>⚠ Areas to Improve</h3>
+                      ${gameData.weaknesses.map((item) => `<div class="weakness-item">✗ ${item}</div>`).join('')}
+                  </div>` : ''}
+              </div>
+              <div class="report-grid-dashboard">
+                  <div class="report-section">
+                      <h3>🎯 Performance Metrics</h3>
+                      <div class="report-grid" style="grid-template-columns:1fr 1fr;">
+                          <div class="report-item"><div class="item-label">Tactical Ability</div><div class="item-value" style="font-size:16px;">${gameData.tacticalAbilityScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Positional Play</div><div class="item-value" style="font-size:16px;">${gameData.positionalPlayScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Decision Making</div><div class="item-value" style="font-size:16px;">${gameData.decisionMakingScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Consistency</div><div class="item-value" style="font-size:16px;">${gameData.consistencyScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Piece Activity</div><div class="item-value" style="font-size:16px;">${gameData.pieceActivityScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">King Safety</div><div class="item-value" style="font-size:16px;">${gameData.kingSafetyScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Endgame Quality</div><div class="item-value" style="font-size:16px;">${gameData.endgameQualityScore || 50}%</div></div>
+                          <div class="report-item"><div class="item-label">Material Balance</div><div class="item-value" style="font-size:16px;">${gameData.materialBalance || 0}</div></div>
+                      </div>
+                  </div>
+                  ${gameData.coachRecommendations && gameData.coachRecommendations.length > 0 ? `
+                  <div class="report-section">
+                      <h3>🎯 Coach Recommendations</h3>
+                      ${gameData.coachRecommendations.map((item) => `<div class="coach-item">💡 ${item}</div>`).join('')}
+                  </div>` : ''}
+              </div>
+              <div class="report-section report-full-width">
+                  <h3>📈 Evaluation Graph</h3>
+                  <div class="graph-container" id="evalGraphContainer">
+                      <canvas id="evalCanvas" class="graph-canvas"></canvas>
+                  </div>
+                  <div class="graph-labels">
+                      <span>Move 1</span>
+                      <span style="color:#22c55e;">Best Line</span>
+                      <span style="color:#a855f7;">Your Moves</span>
+                      <span>Move ${gameData.totalMoves || 0}</span>
+                  </div>
+              </div>
+              <button class="back-btn-sm" onclick="loadMatches()" style="margin:0 auto;display:block;width:200px;">← Back to Games</button>
           </div>
-          <button class="back-btn-sm" onclick="loadMatches()" style="margin:0 auto;display:block;width:200px;">← Back to Games</button>
+        </div>
+
+        <div id="movesTab" class="analysis-tab" style="display:none;">
+          <div id="movesTabContent"></div>
+        </div>
       </div>`;
 
-    setTimeout(() => drawEvalGraph(gameData.evaluationData), 100);
 
-    if (gameData.analysis && gameData.analysis.length > 0) {
-      window._analysisData = gameData;
-    }
+    // expose tab switcher to inline onclick handlers
+    window.openAnalysisTab = (tab) => {
+      const analysisTabEl = document.getElementById('analysisTab');
+      const movesTabEl = document.getElementById('movesTab');
+      const btnAnalysis = document.getElementById('tabBtnAnalysis');
+      const btnMoves = document.getElementById('tabBtnMoves');
+
+      const isAnalysis = tab === 'analysis';
+      if (analysisTabEl) analysisTabEl.style.display = isAnalysis ? 'block' : 'none';
+      if (movesTabEl) movesTabEl.style.display = isAnalysis ? 'none' : 'block';
+
+      // light visual feedback
+      if (btnAnalysis) btnAnalysis.style.background = isAnalysis ? 'rgba(168,85,247,0.15)' : 'rgba(168,85,247,0.05)';
+      if (btnMoves) btnMoves.style.background = !isAnalysis ? 'rgba(34,197,94,0.10)' : 'rgba(34,197,94,0.05)';
+
+      if (!isAnalysis) {
+        // ensure legacy viewer is mounted once
+        if (!state.__movesTabInitialized) {
+          state.__movesTabInitialized = true;
+          analyzeGameLegacy(gameId);
+        }
+      }
+    };
+
+    setTimeout(() => drawEvalGraph(gameData.evaluationData), 100);
+    if (gameData.analysis && gameData.analysis.length > 0) window._analysisData = gameData;
   } catch (error) {
     document.getElementById('content').innerHTML = `<div class="analysis-card" style="margin:auto;"><h2>⚠ Error Loading Analysis</h2><p class="sub-text">${error.message}</p><button onclick="loadMatches()">Back to Games</button></div>`;
   }
 }
+
 
 export function drawEvalGraph(evalData) {
   const canvas = document.getElementById('evalCanvas');

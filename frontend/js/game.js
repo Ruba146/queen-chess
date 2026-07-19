@@ -182,16 +182,36 @@ function showGameLayout() {
 
 function startGameTimer() {
   if (state.gameTimerInterval) clearInterval(state.gameTimerInterval);
-  const startTime = Date.now();
+
+  // Preserve existing UI (#whiteTimer / #blackTimer). Only the active side changes.
+  // Current project uses a simple elapsed-style clock UI (not a fixed time control), so we keep that.
+  let whiteElapsedSec = 0;
+  let blackElapsedSec = 0;
+  let lastTickMs = Date.now();
+
+  const formatClock = (totalSec) => {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  };
+
   state.gameTimerInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const timerString = String(Math.floor(elapsed / 60)).padStart(2, '0') + ':' + String(elapsed % 60).padStart(2, '0');
+    const now = Date.now();
+    const deltaSec = Math.max(0, Math.floor((now - lastTickMs) / 1000));
+    if (deltaSec === 0) return;
+    lastTickMs = now;
+
+    const turn = state.game && typeof state.game.turn === 'function' ? state.game.turn() : null;
+    if (turn === 'w') whiteElapsedSec += deltaSec;
+    else if (turn === 'b') blackElapsedSec += deltaSec;
+
     const whiteTimer = document.getElementById('whiteTimer');
     const blackTimer = document.getElementById('blackTimer');
-    if (whiteTimer) whiteTimer.textContent = timerString;
-    if (blackTimer) blackTimer.textContent = timerString;
-  }, 1000);
+    if (whiteTimer) whiteTimer.textContent = formatClock(whiteElapsedSec);
+    if (blackTimer) blackTimer.textContent = formatClock(blackElapsedSec);
+  }, 250);
 }
+
 
 export function toggleInGameHints() {
   toggleHints();
