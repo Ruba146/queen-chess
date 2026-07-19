@@ -305,6 +305,13 @@ export function jumpToMove(index) {
   analyzeCurrentMove();
 }
 
+// Expose legacy inline onclick handlers (analysis move playback)
+window.nextMove = window.nextMove || nextMove;
+window.previousMove = window.previousMove || previousMove;
+window.jumpToMove = window.jumpToMove || jumpToMove;
+window.playAnalysisMove = window.playAnalysisMove || playAnalysisMove;
+
+
 export function checkUrlParams() {
   const params = new URLSearchParams(window.location.search);
   const analysisId = params.get('analyze');

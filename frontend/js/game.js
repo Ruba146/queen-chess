@@ -345,7 +345,6 @@ async function maybeUpdateLiveInference() {
     const predictedWinnerEl = document.getElementById('predictedWinner');
     const confidenceEl = document.getElementById('predictionConfidence');
 
-
     const winnerRaw = data.predicted_winner ?? data.predictedWinner ?? data.winner ?? null;
     const confidenceRaw = data.confidence ?? data.prediction_confidence ?? data.confidence_score ?? null;
 
@@ -355,6 +354,9 @@ async function maybeUpdateLiveInference() {
       confidenceEl.textContent = conf == null ? '—' : `${Number(conf).toFixed(2)}%`;
     }
 
+    // Make prediction visible after successful response (only if a container exists).
+    const liveReviewEl = document.getElementById('liveReview');
+    if (liveReviewEl) liveReviewEl.style.display = 'block';
 
   } catch {
     // no-op
