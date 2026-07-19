@@ -120,9 +120,15 @@ router.get("/:id", auth, async (req, res) => {
     );
 
     // Detect opening
-    const opening = detectOpening(moves);
-    
+    const detectedOpening = detectOpening(moves);
+
     // Save analysis to game record
+    // Preserve the opening saved during gameplay if it is valid.
+    // Only fall back to detected opening when missing/empty/unknown.
+    const currentSavedOpening = gameData.opening;
+    const isSavedValid = typeof currentSavedOpening === 'string' && currentSavedOpening.trim() !== '' && currentSavedOpening !== 'Unknown Opening';
+    const opening = isSavedValid ? currentSavedOpening : detectedOpening;
+
     gameData.opening = opening;
     gameData.strengths = analysisResult.strengths;
     gameData.weaknesses = analysisResult.weaknesses;

@@ -49,10 +49,16 @@ export const state = {
 
   // Chess AI inference (deployed model) tracking
   lastPredictionPlyCount: 0,
+
+  // Live prediction single-flight + duplicate prevention
+  livePredictionInFlight: false,
+  lastPredictedPly: 0,
+
   livePrediction: {
     whiteWin: null,
     blackWin: null,
     draw: null
   }
 };
+
 

@@ -197,7 +197,7 @@ export function startGame() {
 
 function showGameLayout() {
   const hintsActive = state.hintsEnabled ? 'active' : '';
-  document.getElementById('content').innerHTML = `<div class="game-layout"><div class="game-left"><div id="board" class="fade-in"></div><div class="game-controls-bar"><button onclick="undoMove()">↩ Undo</button><button onclick="getHint()">💡 Hint</button><button onclick="resignGame()">🏳 Resign</button><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Show Legal Moves</div></div><div id="liveReview" class="live-review"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div>AI Analysis Waiting...</div></div><div class="game-right"><div class="game-info-panel"><div class="panel-header"><h3>Game Info</h3></div><div class="game-info-row-item"><span class="label">🤍 White Timer</span><span class="value timer" id="whiteTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🖤 Black Timer</span><span class="value timer" id="blackTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🎯 Difficulty</span><span class="value">${state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1)}</span></div><div class="game-info-row-item"><span class="label">♟ Moves</span><span class="value" id="moveCount">0</span></div><div class="game-info-row-item"><span class="label">📊 Status</span><span class="status-badge" id="gameStatusValue">${state.playerColor}'s Turn</span></div><div class="game-info-row-item"><span class="label">⚔ Captured</span><span class="captured" id="capturedPieces">—</span></div><div class="game-info-row-item"><span class="label">🤍 White Win %</span><span class="captured" id="whiteWinPct">—</span></div><div class="game-info-row-item"><span class="label">🖤 Black Win %</span><span class="captured" id="blackWinPct">—</span></div><div class="game-info-row-item"><span class="label">🤝 Draw %</span><span class="captured" id="drawPct">—</span></div></div></div></div>`;
+  document.getElementById('content').innerHTML = `<div class="game-layout"><div class="game-left"><div id="board" class="fade-in"></div><div class="game-controls-bar"><button onclick="undoMove()">↩ Undo</button><button onclick="getHint()">💡 Hint</button><button onclick="resignGame()">🏳 Resign</button><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Show Legal Moves</div></div><div id="liveReview" class="live-review"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div>AI Analysis Waiting...</div></div><div class="game-right"><div class="game-info-panel"><div class="panel-header"><h3>Game Info</h3></div><div class="game-info-row-item"><span class="label">🤍 White Timer</span><span class="value timer" id="whiteTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🖤 Black Timer</span><span class="value timer" id="blackTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🎯 Difficulty</span><span class="value">${state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1)}</span></div><div class="game-info-row-item"><span class="label">♟ Moves</span><span class="value" id="moveCount">0</span></div><div class="game-info-row-item"><span class="label">📖 Opening</span><span class="captured" id="openingName">—</span></div><div class="game-info-row-item"><span class="label">📊 Status</span><span class="status-badge" id="gameStatusValue">${state.playerColor}'s Turn</span></div><div class="game-info-row-item"><span class="label">⚔ Captured</span><span class="captured" id="capturedPieces">—</span></div><div class="game-info-row-item"><span class="label">🤍 White Win %</span><span class="captured" id="whiteWinPct">—</span></div><div class="game-info-row-item"><span class="label">🖤 Black Win %</span><span class="captured" id="blackWinPct">—</span></div><div class="game-info-row-item"><span class="label">🤝 Draw %</span><span class="captured" id="drawPct">—</span></div></div></div></div>`;
 
   startGameTimer();
 }
@@ -284,23 +284,36 @@ function getOpeningFromFirstPlyMoves(first10Ply) {
   return { opening_name: 'Unknown Opening', opening_eco: 'Unknown' };
 }
 
-async function maybeUpdateLiveInference() {
+function maybeUpdateLiveInference() {
   const ply = state.game.history().length;
-  // Prediction must run exactly once after 10 plies (10 half-moves)
-  if (ply < 10) return;
-  if (ply !== 10) return;
-  if (state.lastPredictionPlyCount === 10) return;
-  state.lastPredictionPlyCount = 10;
+
+  // First prediction should happen after 10 full moves => 20 plies
+  const FIRST_PREDICTION_PLY = 20;
+  if (ply < FIRST_PREDICTION_PLY) return;
+
+  // Prevent duplicate requests for the same stable board state
+  if (state.lastPredictedPly === ply) return;
+
+  // Do not send while Stockfish is still thinking / engine not settled
+  if (state.pendingAIMove || state.waitingBestmove) return;
+
+  // Single-flight: never allow parallel prediction requests
+  if (state.livePredictionInFlight) return;
+
+  state.livePredictionInFlight = true;
+  state.lastPredictedPly = ply;
 
   const history = state.game.history();
   const first10PlySan = history.slice(0, 10);
   const first_10_moves = history.slice(0, 10);
 
-
   const white_rating = state.whiteRating ?? 1200;
   const black_rating = state.blackRating ?? 1200;
 
   const { opening_name, opening_eco } = getOpeningFromFirstPlyMoves(first10PlySan.map((san) => ({ san })));
+
+  // Keep opening synchronized for both Play->save->Analysis
+  state.currentOpening = opening_name || 'Unknown Opening';
 
   const payload = {
     first_10_moves,
@@ -316,6 +329,10 @@ async function maybeUpdateLiveInference() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
+    // Update opening on screen as soon as we have it for this stable state
+    const openingEl = document.getElementById('openingName');
+    if (openingEl) openingEl.textContent = state.currentOpening || 'Unknown Opening';
 
     if (!res.ok) throw new Error(`Inference API error: ${res.status}`);
 
@@ -360,6 +377,8 @@ async function maybeUpdateLiveInference() {
 
   } catch {
     // no-op
+  } finally {
+    state.livePredictionInFlight = false;
   }
 }
 
