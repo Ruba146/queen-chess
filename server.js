@@ -36,6 +36,20 @@ mongoose.connect(mongoUri)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.log("❌ MongoDB ERROR:", err));
 
+
+  mongoose.connection.on("connected", () => {
+  console.log("✅ Mongoose connected");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Mongoose error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.error("❌ Mongoose disconnected");
+});   
+
+
 //  ROUTES 
 const authRoutes = require("./routes/auth");
 const gameRoutes = require("./routes/game");
