@@ -216,7 +216,7 @@ export function drawEvalGraph(evalData) {
 
 export async function analyzeGameLegacy(gameId) {
   const token = localStorage.getItem('token');
-  const response = await fetch('https://queen-chess.onrender.com/api/game/my-games', { headers: { Authorization: 'Bearer ' + token } });
+  const response = await fetch(window.location.origin + '/api/game/my-games', { headers: { Authorization: 'Bearer ' + token } });
   const games = await response.json();
   const gameData = games.find((item) => item._id === gameId);
   if (!gameData) {

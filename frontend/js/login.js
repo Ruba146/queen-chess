@@ -5,7 +5,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value;
 
   try {
-    const res = await fetch("https://queen-chess.onrender.com/api/auth/login", {
+    const res = await fetch(window.location.origin + "/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -29,6 +29,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       localStorage.setItem("token", token);
 
       console.log("TOKEN SAVED:", token); // done
+console.log("Redirecting...");
 
       window.location.href = "index.html";
     } else {

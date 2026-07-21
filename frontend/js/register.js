@@ -20,7 +20,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   }
 
   try {
-    const res = await fetch("https://queen-chess.onrender.com/api/auth/register", {
+    const res = await fetch(window.location.origin + "/api/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

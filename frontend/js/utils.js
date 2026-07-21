@@ -1,4 +1,4 @@
-export const API_BASE = 'https://queen-chess.onrender.com';
+export const API_BASE = window.location.origin;
 
 export function getToken() {
   return localStorage.getItem('token');
