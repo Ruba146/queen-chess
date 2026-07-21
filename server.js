@@ -30,7 +30,7 @@ const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 if (!mongoUri) {
   throw new Error("MONGODB_URI is required");
 }
-
+console.log("Mongo URI:", process.env.MONGO_URI);
 //  DB 
 mongoose.connect(mongoUri)
   .then(() => console.log("✅ MongoDB Connected"))
