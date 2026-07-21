@@ -30,24 +30,29 @@ const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 if (!mongoUri) {
   throw new Error("MONGODB_URI is required");
 }
-console.log("Mongo URI:", process.env.MONGO_URI);
+console.log("Mongo URI:", mongoUri);
+console.log(
+  process.env.MONGODB_URI
+    ? "Using MONGODB_URI"
+    : "Using MONGO_URI"
+);
 //  DB 
 mongoose.connect(mongoUri)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.log("❌ MongoDB ERROR:", err));
 
 
-  mongoose.connection.on("connected", () => {
+mongoose.connection.on("connected", () => {
   console.log("✅ Mongoose connected");
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.error("❌ Mongoose disconnected");
 });
 
 mongoose.connection.on("error", (err) => {
   console.error("❌ Mongoose error:", err);
 });
-
-mongoose.connection.on("disconnected", () => {
-  console.error("❌ Mongoose disconnected");
-});   
 
 
 //  ROUTES 
