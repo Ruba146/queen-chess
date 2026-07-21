@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
+const jwtSecret = require("../utils/jwtSecret");
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.post("/register", async (req, res) => {
     // sign token
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "7d" }
     );
 
@@ -59,7 +60,7 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "7d" }
     );
 
