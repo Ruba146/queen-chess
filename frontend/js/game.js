@@ -401,10 +401,8 @@ export function loadPlay() {
   if (state.gameTimerInterval) clearInterval(state.gameTimerInterval);
   state.gameTimerInterval = null;
   state.gameStartTime = null;
-
   const selectedWhite = state.selectedColor === 'white' ? 'selected' : '';
   const selectedBlack = state.selectedColor === 'black' ? 'selected' : '';
-
   document.getElementById('content').innerHTML = `<div class="start-screen-wrapper"><div class="start-card"><span class="start-card-icon">♛</span><h2>Start a New Match</h2><p class="sub-text">Choose your preferences and start playing.</p><div class="color-row"><button class="${selectedWhite}" onclick="setColor('white')">🤍 White</button><button class="${selectedBlack}" onclick="setColor('black')">🖤 Black</button><button class="full-btn" onclick="setRandomColor()" style="min-width:90px;padding:9px 12px;margin:0">🎲 Random</button></div><div><p class="difficulty-label">AI Difficulty</p><select id="difficultySelect"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="advanced">Advanced</option><option value="master">Master</option></select></div><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track"><div class="toggle-thumb"></div></div>Show Legal Moves</div><button class="start-btn" onclick="startGame()">▶ Start Match</button><p class="footer-text">Play against our AI and improve your skills.</p><div id="gameResult"></div></div></div>`;
 }
 

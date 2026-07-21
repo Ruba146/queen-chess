@@ -1,6 +1,7 @@
 import { initBackgroundParticles } from './animations.js';
 import { renderSidebar } from './ui.js';
-import { loadHome, loadMatches, loadLearning, loadQuiz, loadPremium } from './dashboard.js';
+import { loadHome, loadMatches, loadQuiz, loadPremium } from './dashboard.js';
+import { loadLearning } from './learning.js';
 import { loadProfile, updateDisplayName, updateUsername, updatePreferredSide, changePassword, updateProfilePic } from './profile.js';
 import { logout } from './auth.js';
 import { analyzeGame, checkUrlParams } from './analysis.js';

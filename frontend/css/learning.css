@@ -1,0 +1,801 @@
+/* =============================================
+   QUEEN CHESS - LEARNING PAGE STYLES
+   All classes are prefixed with "learning-"
+   to avoid conflicts with existing styles.
+   ============================================= */
+
+/* ── PAGE LAYOUT ── */
+.learning-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  animation: learningFadeIn 0.4s ease;
+}
+
+@keyframes learningFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── HERO ── */
+.learning-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 28px;
+  padding: 32px 36px;
+  backdrop-filter: blur(18px);
+  flex-wrap: wrap;
+}
+
+.learning-hero-content {
+  flex: 1;
+  min-width: 250px;
+}
+
+.learning-hero-content h1 {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 8px;
+}
+
+.learning-hero-content p {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.learning-hero-stats {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.learning-hero-stat {
+  text-align: center;
+  padding: 12px 18px;
+  background: rgba(168,85,247,0.08);
+  border-radius: 16px;
+  border: 1px solid rgba(168,85,247,0.12);
+  min-width: 80px;
+}
+
+.learning-hero-stat-value {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: #c084fc;
+  font-family: 'Poppins', sans-serif;
+}
+
+.learning-hero-stat-label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── COLLAPSIBLE SECTIONS ── */
+.learning-sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.learning-collapsible {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.learning-collapsible:hover {
+  box-shadow: 0 0 20px rgba(124,58,237,0.1);
+}
+
+.learning-collapsible.open {
+  border-color: rgba(168,85,247,0.15);
+}
+
+.learning-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.learning-collapsible-header:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.learning-collapsible-icon {
+  font-size: 22px;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168,85,247,0.1);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.learning-collapsible-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.learning-collapsible-arrow {
+  font-size: 14px;
+  color: #888;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.learning-collapsible.open .learning-collapsible-arrow {
+  transform: rotate(180deg);
+}
+
+.learning-collapsible-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s ease;
+}
+
+.learning-collapsible-inner {
+  padding: 0 22px 22px 22px;
+}
+
+/* ── SECTION CONTENT ── */
+.learning-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.learning-intro-text {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.7;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.learning-subsection-title {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: #c084fc;
+  margin-bottom: 4px;
+}
+
+/* ── TOPIC CARD (shared) ── */
+.learning-topic-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.25s ease;
+}
+
+.learning-topic-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(168,85,247,0.15);
+}
+
+.learning-topic-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168,85,247,0.08);
+  border-radius: 12px;
+}
+
+.learning-topic-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.learning-topic-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.learning-topic-desc {
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── HOVER SCALE ── */
+.learning-hover-scale {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.learning-hover-scale:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(124,58,237,0.15);
+}
+
+/* ── DIFFICULTY BADGE ── */
+.learning-difficulty-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* ── CHESS BASICS: Pieces Grid ── */
+.learning-pieces-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.learning-piece-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.25s ease;
+}
+
+.learning-piece-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(168,85,247,0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(124,58,237,0.1);
+}
+
+.learning-piece-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 46px;
+  text-align: center;
+}
+
+.learning-piece-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.learning-piece-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.learning-piece-info p {
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── CHESS BASICS: Rules Grid ── */
+.learning-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ── CHESS BASICS: Coordinates Demo ── */
+.learning-coordinates-demo {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.learning-coordinates-demo h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── MINI BOARD ── */
+.learning-mini-board-wrapper {
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid rgba(168,85,247,0.15);
+  box-shadow: 0 0 15px rgba(124,58,237,0.1);
+}
+
+.learning-mini-board {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.learning-board-row {
+  display: flex;
+  flex: 1;
+}
+
+.learning-board-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.learning-board-cell.light {
+  background: #2d1b4e;
+}
+
+.learning-board-cell.dark {
+  background: #140828;
+}
+
+.learning-board-cell img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── OPENINGS ── */
+.learning-openings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.learning-opening-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.25s ease;
+}
+
+.learning-opening-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(168,85,247,0.15);
+}
+
+.learning-opening-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.learning-opening-icon {
+  font-size: 32px;
+  line-height: 1;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168,85,247,0.08);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.learning-opening-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.learning-opening-meta h4 {
+  font-size: 17px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 4px;
+}
+
+.learning-opening-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.learning-moves-badge {
+  font-size: 12px;
+  color: #999;
+  background: rgba(255,255,255,0.05);
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.learning-opening-body {
+  margin-top: 6px;
+}
+
+.learning-opening-explanation {
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border-left: 3px solid rgba(168,85,247,0.2);
+}
+
+.learning-opening-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.learning-detail-item {
+  font-size: 13px;
+}
+
+.learning-detail-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c084fc;
+  margin-bottom: 4px;
+}
+
+.learning-detail-item p {
+  color: #bbb;
+  line-height: 1.5;
+}
+
+.learning-detail-item ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.learning-detail-item ul li {
+  color: #bbb;
+  padding: 3px 0 3px 16px;
+  position: relative;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.learning-detail-item ul li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: #a855f7;
+}
+
+.learning-tip-box {
+  background: rgba(168,85,247,0.06);
+  border: 1px solid rgba(168,85,247,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 2px;
+}
+
+.learning-tip-box .learning-detail-label {
+  color: #fbbf24;
+}
+
+.learning-tip-box p {
+  color: #ddd;
+  font-style: italic;
+}
+
+/* ── TACTICS ── */
+.learning-tactics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.learning-tactic-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.25s ease;
+}
+
+.learning-tactic-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(168,85,247,0.15);
+}
+
+.learning-tactic-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.learning-tactic-icon {
+  font-size: 28px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168,85,247,0.08);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.learning-tactic-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.learning-tactic-meta h4 {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.learning-tactic-desc {
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.learning-tactic-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── ENDGAMES ── */
+.learning-endgames-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.learning-endgame-card .learning-topic-card {
+  padding: 16px;
+}
+
+.learning-endgame-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.learning-endgame-board {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.learning-principles-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+}
+
+.learning-principles-list li {
+  color: #bbb;
+  font-size: 12px;
+  padding: 3px 0 3px 16px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.learning-principles-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #a855f7;
+}
+
+/* ── AI COACH TIPS ── */
+.learning-coach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.learning-coach-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.learning-coach-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(168,85,247,0.15);
+}
+
+.learning-coach-header {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.learning-coach-icon {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.learning-coach-header h4 {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.learning-coach-body {
+  padding: 14px 18px 18px;
+}
+
+.learning-tip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.learning-tip-list-item {
+  color: #bbb;
+  font-size: 12px;
+  line-height: 1.5;
+  padding-left: 18px;
+  position: relative;
+}
+
+.learning-tip-list-item::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent-color, #a855f7);
+  font-weight: bold;
+}
+
+/* ── CTA ── */
+.learning-practice-cta {
+  margin-top: 6px;
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(168,85,247,0.04));
+  border: 1px solid rgba(168,85,247,0.12);
+  border-radius: 22px;
+  text-align: center;
+}
+
+.learning-cta-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 6px;
+}
+
+.learning-cta-content p {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 16px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.learning-cta-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.learning-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(168,85,247,0.4);
+}
+
+/* =============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================= */
+
+@media(max-width:900px) {
+  .learning-hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+  .learning-hero-content p {
+    max-width: 100%;
+  }
+  .learning-pieces-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-rules-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-tactics-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-coach-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-hero-stats {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media(max-width:640px) {
+  .learning-hero-content h1 {
+    font-size: 26px;
+  }
+  .learning-collapsible-header {
+    padding: 14px 16px;
+  }
+  .learning-collapsible-inner {
+    padding: 0 16px 16px 16px;
+  }
+  .learning-opening-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .learning-endgame-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .learning-opening-card {
+    padding: 16px;
+  }
+  .learning-tactic-card {
+    padding: 16px;
+  }
+}
