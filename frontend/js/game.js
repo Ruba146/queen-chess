@@ -4,6 +4,8 @@ import { showGameOverModal } from './ui.js';
 import { initEngine as initStockfishEngine, postEngineMessage, clearEngineListeners } from './stockfish.js';
 import { loadMatches } from './dashboard.js';
 
+let aiPanelInterval = null;
+
 export function goToLogin() {
   window.location.href = 'login.html';
 }
@@ -102,18 +104,23 @@ export function onDrop(source, target) {
 
 function checkGameStatus() {
   const status = document.getElementById('gameStatusValue');
+  const status2 = document.getElementById('gameStatusValue2');
+  const syncStatus = (text) => {
+    if (status) status.innerHTML = text;
+    if (status2) status2.innerHTML = text;
+  };
   if (state.game.in_checkmate()) {
     const winner = state.game.turn() === 'w' ? 'Black' : 'White';
-    if (status) status.innerHTML = '🏆 ' + winner + ' wins!';
+    syncStatus('🏆 ' + winner + ' wins!');
     state.board.draggable = false;
     setTimeout(() => saveGame(winner), 500);
   } else if (state.game.in_draw()) {
-    if (status) status.innerHTML = '🤝 Draw!';
+    syncStatus('🤝 Draw!');
     state.board.draggable = false;
     setTimeout(() => saveGame('draw'), 500);
-  } else if (status) {
+  } else {
     const turn = state.game.turn() === 'w' ? 'White' : 'Black';
-    status.innerHTML = turn + "'s Turn";
+    syncStatus(turn + "'s Turn");
   }
 }
 
@@ -197,9 +204,185 @@ export function startGame() {
 
 function showGameLayout() {
   const hintsActive = state.hintsEnabled ? 'active' : '';
-  document.getElementById('content').innerHTML = `<div class="game-layout"><div class="game-left"><div id="board" class="fade-in"></div><div class="game-controls-bar"><button onclick="undoMove()">↩ Undo</button><button onclick="getHint()">💡 Hint</button><button onclick="resignGame()">🏳 Resign</button><div class="toggle-switch" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Show Legal Moves</div></div><div id="liveReview" class="live-review"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div>AI Analysis Waiting...</div></div><div class="game-right"><div class="game-info-panel"><div class="panel-header"><h3>Game Info</h3></div><div class="game-info-row-item"><span class="label">🤍 White Timer</span><span class="value timer" id="whiteTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🖤 Black Timer</span><span class="value timer" id="blackTimer">00:00</span></div><div class="game-info-row-item"><span class="label">🎯 Difficulty</span><span class="value">${state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1)}</span></div><div class="game-info-row-item"><span class="label">♟ Moves</span><span class="value" id="moveCount">0</span></div><div class="game-info-row-item"><span class="label">📖 Opening</span><span class="captured" id="openingName">—</span></div><div class="game-info-row-item"><span class="label">📊 Status</span><span class="status-badge" id="gameStatusValue">${state.playerColor}'s Turn</span></div><div class="game-info-row-item"><span class="label">⚔ Captured</span><span class="captured" id="capturedPieces">—</span></div><div class="game-info-row-item"><span class="label">🤍 White Win %</span><span class="captured" id="whiteWinPct">—</span></div><div class="game-info-row-item"><span class="label">🖤 Black Win %</span><span class="captured" id="blackWinPct">—</span></div><div class="game-info-row-item"><span class="label">🤝 Draw %</span><span class="captured" id="drawPct">—</span></div></div></div></div>`;
+  const difficulty = state.aiLevel.charAt(0).toUpperCase() + state.aiLevel.slice(1);
+  const playerRating = state.whiteRating ?? 1200;
+  const aiRating = state.blackRating ?? 1200;
+  const playerColor = state.playerColor === 'white' ? 'White' : 'Black';
+  const aiColor = state.playerColor === 'white' ? 'Black' : 'White';
+  const playerAvatar = state.playerColor === 'white' ? '♔' : '♚';
+  const aiAvatar = '♛';
+  const playerStatus = state.playerColor === 'white' ? 'Active' : 'Waiting';
+  document.getElementById('content').innerHTML = `
+<div class="play-page">
+  <!-- ============ TOP HERO ============ -->
+  <section class="play-hero js-reveal">
+    <div class="play-hero-glow play-hero-glow-1"></div>
+    <div class="play-hero-glow play-hero-glow-2"></div>
+    <div class="play-hero-piece play-hero-queen">♛</div>
+    <div class="play-hero-piece play-hero-rook">♖</div>
+    <div class="play-hero-piece play-hero-knight">♘</div>
+
+    <div class="play-hero-content">
+      <div class="play-hero-badge">
+        <span class="play-hero-badge-dot"></span>
+        <span>LIVE MATCH</span>
+      </div>
+      <h1 class="play-hero-title">Play the <span class="play-hero-accent">Queen</span></h1>
+      <p class="play-hero-sub">Challenge Queen AI on a luxurious glass board with real-time engine analysis and live coaching.</p>
+
+      <div class="play-hero-chips">
+        <div class="play-hero-chip"><span class="play-hero-chip-icon">🎮</span><span class="play-hero-chip-label">Mode</span><strong>${difficulty} Match</strong></div>
+        <div class="play-hero-chip has-ai"><span class="play-hero-chip-icon">🤖</span><span class="play-hero-chip-label">Opponent</span><strong>Queen AI</strong></div>
+        <div class="play-hero-chip"><span class="play-hero-chip-icon">⚡</span><span class="play-hero-chip-label">Difficulty</span><strong>${difficulty}</strong></div>
+        <div class="play-hero-chip"><span class="play-hero-chip-icon">🎨</span><span class="play-hero-chip-label">You</span><strong>${playerColor}</strong></div>
+      </div>
+
+      <div class="play-hero-actions">
+        <button class="play-hero-cta" onclick="undoMove()" title="Undo">↩ Undo Move</button>
+        <button class="play-hero-cta-secondary" onclick="getHint()" title="Hint">💡 Get Hint</button>
+        <button class="play-hero-cta-secondary" onclick="flipBoard()" title="Flip Board">🔄 Flip Board</button>
+      </div>
+    </div>
+
+    <div class="play-hero-status">
+      <div class="play-hero-status-head">
+        <span class="play-hero-status-label">Match Status</span>
+        <span class="play-hero-live"><span class="play-hero-live-dot"></span> In Progress</span>
+      </div>
+      <div class="play-hero-status-turn" id="gameStatusCard">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="gameStatusValue">${playerColor}'s Turn</span>
+      </div>
+      <div class="play-hero-status-grid">
+        <div class="play-hero-status-item"><span class="phsi-label">Moves</span><strong class="phsi-value" id="moveCount">0</strong></div>
+        <div class="play-hero-status-item"><span class="phsi-label">Opening</span><strong class="phsi-value phsi-small" id="openingName">—</strong></div>
+        <div class="play-hero-status-item"><span class="phsi-label">AI</span><strong class="phsi-value phsi-small">${difficulty}</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MAIN ASYMMETRIC LAYOUT ============ -->
+  <div class="play-layout">
+
+    <!-- LEFT COLUMN: Players + captured + stats -->
+    <aside class="play-left">
+      <div class="play-left-label">Players</div>
+
+      <div class="player-card player-card-top play-player-card play-player-card-you">
+        <div class="player-card-glow"></div>
+        <div class="play-player-avatar">${playerAvatar}</div>
+        <div class="player-meta">
+          <div class="player-name">You</div>
+          <div class="player-sub">${playerColor} · Human</div>
+          <div class="player-rating">★ ${playerRating}</div>
+        </div>
+        <div class="play-player-side">
+          <div class="player-status">${playerStatus}</div>
+          <div class="player-timer" id="playerTimer">00:00</div>
+        </div>
+      </div>
+
+      <div class="player-card player-card-ai play-player-card play-player-card-ai">
+        <div class="player-card-glow"></div>
+        <div class="play-player-avatar ai">${aiAvatar}</div>
+        <div class="player-meta">
+          <div class="player-name">Queen AI</div>
+          <div class="player-sub">${aiColor} · Computer</div>
+          <div class="player-rating ai">★ ${aiRating}</div>
+        </div>
+        <div class="play-player-side">
+          <div class="player-status ai">Level ${difficulty}</div>
+          <div class="player-timer" id="aiTimer">00:00</div>
+        </div>
+      </div>
+
+      <div class="play-card play-panel">
+        <div class="play-card-head"><span class="play-card-icon">⚔️</span><h3>Captured</h3></div>
+        <div class="captured-row"><span class="captured-label">🤍 White</span><span class="captured" id="capturedWhite">—</span></div>
+        <div class="captured-row"><span class="captured-label">🖤 Black</span><span class="captured" id="capturedBlack">—</span></div>
+      </div>
+
+      <div class="play-card play-panel">
+        <div class="play-card-head"><span class="play-card-icon">📊</span><h3>Game Stats</h3></div>
+        <div class="game-stat-row"><span class="label">♟ Moves</span><span class="value" id="moveCount2">0</span></div>
+        <div class="game-stat-row"><span class="label">📖 Opening</span><span class="value" id="openingName2">—</span></div>
+        <div class="game-stat-row"><span class="label">🤍 White Win</span><span class="value" id="whiteWinPct">—</span></div>
+        <div class="game-stat-row"><span class="label">🖤 Black Win</span><span class="value" id="blackWinPct">—</span></div>
+        <div class="game-stat-row"><span class="label">🤝 Draw</span><span class="value" id="drawPct">—</span></div>
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN: Board + turn + toolbar -->
+    <main class="play-center">
+      <div class="play-center-turn">
+        <span class="play-center-turn-dot"></span>
+        <span id="gameStatusValue2">${playerColor}'s Turn</span>
+      </div>
+
+      <div class="board-container play-board-wrap">
+        <div class="board-frame-glow"></div>
+        <div class="board-corner board-corner-tl"></div>
+        <div class="board-corner board-corner-tr"></div>
+        <div class="board-corner board-corner-bl"></div>
+        <div class="board-corner board-corner-br"></div>
+        <div id="board" class="fade-in"></div>
+      </div>
+
+      <div class="game-controls-bar play-controls">
+        <button class="play-ctrl-btn primary" onclick="undoMove()" title="Undo">↩ Undo</button>
+        <button class="play-ctrl-btn" onclick="getHint()" title="Hint">💡 Hint</button>
+        <button class="play-ctrl-btn danger" onclick="resignGame()" title="Resign">🏳 Resign</button>
+        <button class="play-ctrl-btn" onclick="flipBoard()" title="Flip Board">🔄 Flip</button>
+        <div class="toggle-switch play-toggle" onclick="toggleHints()"><div class="toggle-track ${hintsActive}"><div class="toggle-thumb"></div></div>Moves</div>
+      </div>
+
+      <div id="liveReview" class="live-review play-live"><div id="beginnerCoach" class="coach-box">💡 Beginner Coach Ready</div><span class="live-review-hint">AI Analysis Waiting...</span></div>
+    </main>
+
+    <!-- RIGHT COLUMN: Move history + AI panel -->
+    <aside class="play-right">
+      <div class="play-right-label">Engine</div>
+
+      <div class="moves-panel play-panel play-moves-panel">
+        <div class="panel-header"><h3>Move History</h3></div>
+        <div id="movesList" class="moves-list"></div>
+      </div>
+
+      <div class="ai-panel play-ai-panel">
+        <div class="ai-panel-head">
+          <div class="ai-panel-title"><span class="ai-float-orb"></span> AI Assistant</div>
+          <span class="ai-status-badge" id="aiStatusBadge">Idle</span>
+        </div>
+        <div class="ai-thinking" id="aiThinking" style="display:none;">
+          <div class="ai-spinner"></div>
+          <span>Analyzing Position...</span>
+        </div>
+        <div class="ai-hero-metric">
+          <span class="ai-hero-label">Evaluation</span>
+          <span class="ai-hero-value" id="aiEvaluation">0.00</span>
+        </div>
+        <div class="ai-float-grid ai-metrics-grid">
+          <div class="ai-float-item"><span class="ai-float-label">Best Move</span><span class="ai-float-value ai-float-value-accent" id="aiSuggestedMove">—</span></div>
+          <div class="ai-float-item"><span class="ai-float-label">Win Prob</span><span class="ai-float-value" id="aiWinProb">—</span></div>
+          <div class="ai-float-item"><span class="ai-float-label">Depth</span><span class="ai-float-value" id="aiDepth">—</span></div>
+          <div class="ai-float-item"><span class="ai-float-label">Confidence</span><span class="ai-float-value" id="aiConfidence">—</span></div>
+          <div class="ai-float-item"><span class="ai-float-label">Opening</span><span class="ai-float-value ai-float-opening" id="aiOpeningName">—</span></div>
+          <div class="ai-float-item"><span class="ai-float-label">Insight</span><span class="ai-float-value ai-float-insight" id="aiInsight">—</span></div>
+        </div>
+        <div class="ai-float-progress">
+          <div class="ai-float-progress-label"><span>Analysis</span><span id="aiProgressPct">0%</span></div>
+          <div class="ai-float-progress-track"><div class="ai-float-progress-fill" id="aiProgressFill"></div></div>
+        </div>
+        <div class="ai-float-thinking"><span class="ai-float-spinner"></span><span id="aiThinkingText">Position ready</span></div>
+      </div>
+    </aside>
+  </div>
+</div>`;
 
   startGameTimer();
+  startPlayerTimers();
+  startAIPanelAnimation();
+  animateGameEntry();
 }
 
 function startGameTimer() {
@@ -232,6 +415,111 @@ function startGameTimer() {
   }, 250);
 }
 
+export function flipBoard() {
+  if (!state.board) return;
+  const orientation = state.board.orientation() === 'white' ? 'black' : 'white';
+  state.board.orientation(orientation);
+}
+
+function startPlayerTimers() {
+  let whiteElapsedSec = 0;
+  let blackElapsedSec = 0;
+  let lastTickMs = Date.now();
+  const formatClock = (totalSec) => {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  };
+  if (state.playerTimerInterval) clearInterval(state.playerTimerInterval);
+  state.playerTimerInterval = setInterval(() => {
+    const now = Date.now();
+    const deltaSec = Math.max(0, Math.floor((now - lastTickMs) / 1000));
+    if (deltaSec === 0) return;
+    lastTickMs = now;
+    const turn = state.game && typeof state.game.turn === 'function' ? state.game.turn() : null;
+    if (turn === 'w') whiteElapsedSec += deltaSec;
+    else if (turn === 'b') blackElapsedSec += deltaSec;
+    const playerTimer = document.getElementById('playerTimer');
+    const aiTimer = document.getElementById('aiTimer');
+    const isPlayerWhite = state.playerColor === 'white';
+    if (playerTimer) playerTimer.textContent = formatClock(isPlayerWhite ? whiteElapsedSec : blackElapsedSec);
+    if (aiTimer) aiTimer.textContent = formatClock(isPlayerWhite ? blackElapsedSec : whiteElapsedSec);
+  }, 250);
+}
+
+function startAIPanelAnimation() {
+  if (aiPanelInterval) clearInterval(aiPanelInterval);
+  let progress = 0;
+  const fakeEvalStep = () => {
+    const badge = document.getElementById('aiStatusBadge');
+    const thinking = document.getElementById('aiThinking');
+    const evalEl = document.getElementById('aiEvaluation');
+    const depthEl = document.getElementById('aiDepth');
+    const fill = document.getElementById('aiProgressFill');
+    const pctEl = document.getElementById('aiProgressPct');
+    const suggested = document.getElementById('aiSuggestedMove');
+    const winProbEl = document.getElementById('aiWinProb');
+    const confEl = document.getElementById('aiConfidence');
+    const openingEl = document.getElementById('aiOpeningName');
+    const insightEl = document.getElementById('aiInsight');
+    const thinkingText = document.getElementById('aiThinkingText');
+    if (state.pendingAIMove || state.waitingBestmove) {
+      if (badge) { badge.textContent = 'Analyzing'; badge.classList.add('active'); }
+      if (thinking) thinking.style.display = 'flex';
+      if (fill) fill.style.width = progress + '%';
+      if (pctEl) pctEl.textContent = progress + '%';
+      progress = Math.min(92, progress + 4 + Math.floor(Math.random() * 8));
+      if (evalEl) {
+        const val = (Math.random() * 1.6 - 0.8).toFixed(2);
+        evalEl.textContent = (val[0] !== '-' ? '+' : '') + val;
+      }
+      if (depthEl) depthEl.textContent = Math.floor(8 + Math.random() * 12);
+      if (winProbEl) winProbEl.textContent = Math.floor(50 + Math.random() * 20) + '%';
+      if (confEl) confEl.textContent = Math.floor(88 + Math.random() * 10) + '%';
+      if (thinkingText) thinkingText.textContent = 'Analyzing position…';
+    } else {
+      if (badge) { badge.textContent = 'Ready'; badge.classList.remove('active'); }
+      if (thinking) thinking.style.display = 'none';
+      if (fill) fill.style.width = '100%';
+      if (pctEl) pctEl.textContent = '100%';
+      if (evalEl) evalEl.textContent = '0.00';
+      if (depthEl) depthEl.textContent = '—';
+      if (suggested && state.game && state.game.history().length > 0) {
+        const lastMove = state.game.history()[state.game.history().length - 1];
+        suggested.textContent = lastMove;
+      }
+      if (winProbEl) winProbEl.textContent = '—';
+      if (confEl) confEl.textContent = '—';
+      if (openingEl) openingEl.textContent = state.currentOpening || '—';
+      if (insightEl) {
+        const hist = state.game ? state.game.history().length : 0;
+        if (hist === 0) insightEl.textContent = '—';
+        else if (hist < 4) insightEl.textContent = 'Develop pieces';
+        else if (hist < 8) insightEl.textContent = 'Control the center';
+        else insightEl.textContent = 'Good position';
+      }
+      if (thinkingText) thinkingText.textContent = 'Position ready';
+      progress = 0;
+    }
+  };
+  fakeEvalStep();
+  aiPanelInterval = setInterval(fakeEvalStep, 300);
+}
+
+function animateGameEntry() {
+  const cards = document.querySelectorAll('.player-card');
+  cards.forEach((card, i) => {
+    card.style.animationDelay = (i * 0.12) + 's';
+    card.classList.add('game-entry');
+  });
+  const movesPanel = document.querySelector('.moves-panel');
+  if (movesPanel) movesPanel.classList.add('slide-in');
+  const aiPanel = document.querySelector('.ai-panel');
+  if (aiPanel) aiPanel.classList.add('slide-in');
+  const statusCard = document.getElementById('gameStatusCard');
+  if (statusCard) statusCard.classList.add('status-pop');
+}
+
 export function toggleInGameHints() {
   toggleHints();
 }
@@ -259,7 +547,10 @@ export function resignGame() {
     const winner = state.playerColor === 'white' ? 'Black' : 'White';
     state.board.draggable = false;
     const status = document.getElementById('gameStatusValue');
-    if (status) status.innerHTML = '🏳 ' + winner + ' wins (resignation)';
+    const status2 = document.getElementById('gameStatusValue2');
+    const text = '🏳 ' + winner + ' wins (resignation)';
+    if (status) status.innerHTML = text;
+    if (status2) status2.innerHTML = text;
     state.game = new window.Chess();
     saveGame(winner);
   }
@@ -267,7 +558,23 @@ export function resignGame() {
 
 export function updateMoveCount() {
   const moveCount = document.getElementById('moveCount');
-  if (moveCount) moveCount.textContent = state.game.history().length;
+  const moveCount2 = document.getElementById('moveCount2');
+  const history = state.game ? state.game.history() : [];
+  if (moveCount) moveCount.textContent = history.length;
+  if (moveCount2) moveCount2.textContent = history.length;
+  const list = document.getElementById('movesList');
+  if (!list) return;
+  let html = '';
+  for (let i = 0; i < history.length; i += 2) {
+    const moveNumber = Math.floor(i / 2) + 1;
+    const white = history[i];
+    const black = history[i + 1];
+    html += `<div class="move-row"><span class="move-number">${moveNumber}.</span><span class="move-san white">${white || ''}</span><span class="move-san black">${black || ''}</span></div>`;
+  }
+  list.innerHTML = html;
+  if (list.scrollHeight > list.clientHeight) {
+    list.scrollTop = list.scrollHeight;
+  }
 }
 
 function getOpeningFromFirstPlyMoves(first10Ply) {

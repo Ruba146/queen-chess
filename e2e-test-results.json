@@ -1,0 +1,15 @@
+{
+  "summary": "Current test run results show ALL 8 tests failing due to OpenRouter 402 (Insufficient Credits)",
+  "rootCause": "OpenRouter API key has insufficient credits. All LLM calls return 402 error.",
+  "testsFailing": [
+    "Test 1: AI Chess Coach - fallback 'temporarily unavailable', missing all 7 required fields",
+    "Test 2: Opening Search (6 sub-tests) - all return fallback with no opening name or fields",
+    "Test 3: Search by Moves (4 sub-tests) - all return 'Unknown Opening' with fallback",
+    "Test 4: Opening Explorer (3 sub-tests) - AI explanation fallback detected",
+    "Test 5: Endgame Lab - No explanation panel appears (fallback doesn't render panel)",
+    "Test 6: Daily Training - needs verification",
+    "Test 7: Personalized Coach - fallback message expected",
+    "Test 8: Learning Path - needs verification"
+  ]
+}
+

@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-07-27T08:45:05.262Z",
+  "issues": [
+    {
+      "feature": "AI Chess Coach",
+      "description": "Missing fields: Opening, Main moves, Main idea, Advantages, Disadvantages, Best for, Common mistakes"
+    },
+    {
+      "feature": "AI Chess Coach",
+      "description": "Fallback message detected instead of real LLM response"
+    },
+    {
+      "feature": "Opening Search: London System",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Search: Italian Game",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Search: Sicilian Defense",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Search: Najdorf",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Search: C50",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Search: B20",
+      "description": "Missing sections: Advantages, Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Search by Moves: e4 e5 Nf3 Nc6",
+      "description": "Missing Advantages; Missing Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Search by Moves: e4 c5",
+      "description": "Missing Advantages; Missing Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Search by Moves: d4 Nf6 c4 g6",
+      "description": "Missing Advantages; Missing Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Search by Moves: d4 d5 c4",
+      "description": "Missing Advantages; Missing Disadvantages; Has fallback message"
+    },
+    {
+      "feature": "Opening Explorer: C50 - Italian Game",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Opening Explorer: C60 - Ruy Lopez",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Opening Explorer: B20 - Sicilian Defense",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Endgame Lab: Queen vs King — Mating Pattern",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Endgame Lab: Rook vs King — Box Method",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Endgame Lab: Pawn Race — King Activity",
+      "description": "Fallback/AI unavailable message detected"
+    },
+    {
+      "feature": "Personalized Coach",
+      "description": "Unexpected summary: \"Your personalized chess improvement plan is ready.\""
+    }
+  ],
+  "totalTests": 8,
+  "totalIssues": 19
+}

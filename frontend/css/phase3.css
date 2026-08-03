@@ -1,0 +1,350 @@
+/* ═══════════════════════════════════════════════
+   QUEEN CHESS - PHASE 3 STYLES
+   Daily Training, Puzzle Trainer, Quiz, Game Review, Learning Path
+   ═══════════════════════════════════════════════ */
+
+/* ── DAILY TRAINING ── */
+.daily-training-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: learningFadeIn 0.4s ease;
+}
+
+.daily-training-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 24px 28px;
+  flex-wrap: wrap;
+}
+
+.daily-training-title h2 {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 4px;
+}
+
+.daily-training-title p {
+  color: #888;
+  font-size: 13px;
+}
+
+.daily-training-components {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.daily-training-component {
+  transition: all 0.25s ease;
+}
+
+.daily-training-component:hover {
+  transform: translateY(-2px);
+}
+
+/* ── PUZZLE TRAINER ── */
+.puzzle-trainer-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.puzzle-feedback-correct {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.2);
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.puzzle-feedback-incorrect {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.2);
+  color: #f87171;
+  font-weight: 600;
+}
+
+.puzzle-solution-display {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(251,191,36,0.08);
+  border: 1px solid rgba(251,191,36,0.15);
+  margin-top: 8px;
+}
+
+/* ── QUIZ MODULE ── */
+.quiz-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: learningFadeIn 0.4s ease;
+}
+
+.quiz-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quiz-setup-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 4px;
+}
+
+.quiz-setup-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.quiz-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quiz-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #aaa;
+  font-family: 'Poppins', sans-serif;
+}
+
+.quiz-category-grid,
+.quiz-difficulty-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quiz-category-btn,
+.quiz-difficulty-btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #999;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.quiz-category-btn:hover,
+.quiz-difficulty-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: #ddd;
+}
+
+.quiz-category-btn.active,
+.quiz-difficulty-btn.active {
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2));
+  border-color: rgba(168,85,247,0.3);
+  color: white;
+}
+
+.quiz-active {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+}
+
+.quiz-progress {
+  flex: 1;
+  min-width: 150px;
+}
+
+.quiz-timer {
+  flex-shrink: 0;
+}
+
+.quiz-score-display {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c084fc;
+  flex-shrink: 0;
+}
+
+.quiz-question {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quiz-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #ddd;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.quiz-option-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(168,85,247,0.3);
+  transform: translateX(4px);
+}
+
+.quiz-option-btn:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.quiz-option-letter {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(168,85,247,0.1);
+  color: #c084fc;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.quiz-option-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.quiz-feedback {
+  animation: learningFadeIn 0.3s ease;
+}
+
+.quiz-nav {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quiz-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: learningFadeIn 0.4s ease;
+}
+
+.quiz-results-header {
+  text-align: center;
+  padding: 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+}
+
+.quiz-results-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+}
+
+.quiz-result-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── GAME REVIEW ── */
+.game-review-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: learningFadeIn 0.4s ease;
+}
+
+.game-review-page .learning-hero-stats {
+  justify-content: flex-start;
+}
+
+/* ── LEARNING PATH ── */
+.learning-path-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: learningFadeIn 0.4s ease;
+}
+
+.learning-path-page .learning-hero-stats {
+  justify-content: flex-start;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px) {
+  .daily-training-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .quiz-setup-controls {
+    padding: 16px;
+  }
+
+  .quiz-category-grid,
+  .quiz-difficulty-grid {
+    justify-content: center;
+  }
+
+  .quiz-header {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media(max-width:640px) {
+  .quiz-option-btn {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .quiz-option-letter {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+

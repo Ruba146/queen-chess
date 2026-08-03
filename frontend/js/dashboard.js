@@ -28,8 +28,17 @@ export function loadLearning() {
   document.getElementById('content').innerHTML = '<div class="analysis-card" style="margin:auto;"><h2>📚 Learning</h2><p class="sub-text">Coming soon...</p></div>';
 }
 
-export function loadQuiz() {
-  document.getElementById('content').innerHTML = '<div class="analysis-card" style="margin:auto;"><h2>🧩 Quiz</h2><p class="sub-text">Chess puzzles and tactical training.</p></div>';
+export async function loadQuiz() {
+  const content = document.getElementById('content');
+  if (!content) return;
+
+  try {
+    const module = await import('./quizPage.js');
+    module.loadQuiz();
+  } catch (error) {
+    console.error('Failed to load quiz page:', error);
+    content.innerHTML = '<div class="analysis-card" style="margin:auto;"><h2>⚠️ Error Loading Quiz</h2><p class="sub-text">Please try again later.</p></div>';
+  }
 }
 
 export function loadPremium() {

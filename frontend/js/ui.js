@@ -8,9 +8,9 @@ export function renderSidebar() {
   if (!sidebar) return;
 
   sidebar.innerHTML =
-    '<div class="logo">♛ <span>Queen</span> Chess</div><div class="sidebar-buttons">' +
-    (token ? '<button onclick="logout()">🚪 Logout</button>' : '<button onclick="goToLogin()">🔑 Login</button>') +
-    '<button onclick="loadHome()">🏠 Home</button><button onclick="loadPlay()">♟ Play</button><button onclick="loadMatches()">📁 My Games</button><button onclick="loadLearning()">📚 Learning</button><button onclick="loadQuiz()">🧩 Quiz</button><button onclick="loadProfile()">👤 Profile</button><button onclick="loadPremium()">💎 Premium</button></div>';
+    '<div class="logo"><span class="logo-icon">♛</span><span class="logo-text"><span>Queen</span> Chess</span></div><div class="sidebar-buttons">' +
+    (token ? '<button onclick="logout()"><span class="nav-icon">🚪</span><span class="nav-label">Logout</span></button>' : '<button onclick="goToLogin()"><span class="nav-icon">🔑</span><span class="nav-label">Login</span></button>') +
+    '<button onclick="loadHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button><button onclick="loadPlay()"><span class="nav-icon">♟</span><span class="nav-label">Play</span></button><button onclick="loadMatches()"><span class="nav-icon">📁</span><span class="nav-label">My Games</span></button><button onclick="loadLearning()"><span class="nav-icon">📚</span><span class="nav-label">Learning</span></button><button onclick="loadQuiz()"><span class="nav-icon">🧩</span><span class="nav-label">Quiz</span></button><button onclick="loadProfile()"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button><button onclick="loadPremium()"><span class="nav-icon">💎</span><span class="nav-label">Premium</span></button></div>';
 }
 
 export function showGameOverModal(result, moveCount, accuracy, duration, analysis, ratingChange, newRating, rankAfter, playerLevel) {
