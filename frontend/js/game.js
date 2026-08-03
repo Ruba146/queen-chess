@@ -379,40 +379,10 @@ function showGameLayout() {
   </div>
 </div>`;
 
-  startGameTimer();
   startPlayerTimers();
   startAIPanelAnimation();
   animateGameEntry();
-}
-
-function startGameTimer() {
-  if (state.gameTimerInterval) clearInterval(state.gameTimerInterval);
-
-  let whiteElapsedSec = 0;
-  let blackElapsedSec = 0;
-  let lastTickMs = Date.now();
-
-  const formatClock = (totalSec) => {
-    const m = Math.floor(totalSec / 60);
-    const s = totalSec % 60;
-    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-  };
-
-  state.gameTimerInterval = setInterval(() => {
-    const now = Date.now();
-    const deltaSec = Math.max(0, Math.floor((now - lastTickMs) / 1000));
-    if (deltaSec === 0) return;
-    lastTickMs = now;
-
-    const turn = state.game && typeof state.game.turn === 'function' ? state.game.turn() : null;
-    if (turn === 'w') whiteElapsedSec += deltaSec;
-    else if (turn === 'b') blackElapsedSec += deltaSec;
-
-    const whiteTimer = document.getElementById('whiteTimer');
-    const blackTimer = document.getElementById('blackTimer');
-    if (whiteTimer) whiteTimer.textContent = formatClock(whiteElapsedSec);
-    if (blackTimer) blackTimer.textContent = formatClock(blackElapsedSec);
-  }, 250);
+  updateCapturedPieces();
 }
 
 export function flipBoard() {
@@ -574,6 +544,56 @@ export function updateMoveCount() {
   list.innerHTML = html;
   if (list.scrollHeight > list.clientHeight) {
     list.scrollTop = list.scrollHeight;
+  }
+  // Keep captured pieces and stats in sync after every move
+  updateCapturedPieces();
+}
+
+export function updateCapturedPieces() {
+  if (!state.game) return;
+  const whiteCap = document.getElementById('capturedWhite');
+  const blackCap = document.getElementById('capturedBlack');
+  if (!whiteCap && !blackCap) return;
+
+  // Walk through the game history and tally captures.
+  const capturedByWhite = []; // pieces White captured (black pieces taken)
+  const capturedByBlack = []; // pieces Black captured (white pieces taken)
+  const moves = state.game.history({ verbose: true });
+  for (const m of moves) {
+    if (!m.captured) continue;
+    if (m.color === 'w') capturedByWhite.push(pieceSymbol(m.captured));
+    else capturedByBlack.push(pieceSymbol(m.captured));
+  }
+
+  if (whiteCap) whiteCap.innerHTML = capturedByWhite.length ? capturedByWhite.join(' ') : '—';
+  if (blackCap) blackCap.innerHTML = capturedByBlack.length ? capturedByBlack.join(' ') : '—';
+
+  // Opening name sync
+  const openingNameEl = document.getElementById('openingName');
+  const openingName2El = document.getElementById('openingName2');
+  const aiOpeningEl = document.getElementById('aiOpeningName');
+  const opening = state.currentOpening || 'Unknown Opening';
+  if (openingNameEl) openingNameEl.textContent = opening;
+  if (openingName2El) openingName2El.textContent = opening;
+  if (aiOpeningEl) aiOpeningEl.textContent = opening;
+}
+
+function pieceSymbol(piece) {
+  const symbols = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+  return symbols[piece] || piece;
+}
+
+function updatePlayerStatus() {
+  const turn = state.game && typeof state.game.turn === 'function' ? state.game.turn() : null;
+  const isPlayerTurn = turn === state.playerColor[0];
+  const playerStatusEl = document.querySelector('.play-player-card-you .player-status');
+  const aiStatusEl = document.querySelector('.play-player-card-ai .player-status');
+  if (playerStatusEl) {
+    playerStatusEl.textContent = isPlayerTurn ? 'Active' : 'Thinking...';
+    playerStatusEl.classList.toggle('ai', !isPlayerTurn);
+  }
+  if (aiStatusEl) {
+    aiStatusEl.textContent = isPlayerTurn ? 'Idle' : 'Thinking...';
   }
 }
 
@@ -742,10 +762,12 @@ function initGameEngine() {
   initStockfishEngine((line) => {
     if (state.pendingAIMove && line && typeof line === 'string' && line.startsWith('bestmove')) {
       const move = line.split(' ')[1];
-      if (move !== '(none)' && move && move.length >= 4) {
+if (move !== '(none)' && move && move.length >= 4) {
         state.game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
         state.board.position(state.game.fen());
         checkGameStatus();
+        updateMoveCount();
+        updatePlayerStatus();
       }
 
       state.pendingAIMove = false;
