@@ -10,15 +10,26 @@ async function getDailyMission(userId, date) {
 }
 
 async function createDailyMission(userId, date, missions) {
-  const mission = await prisma.dailyMission.create({
-    data: {
-      userId,
-      date,
-      missions: { create: missions },
-    },
-    include: { missions: { orderBy: { createdAt: "asc" } } },
-  });
-  return serializeDailyMission(mission);
+  try {
+    const mission = await prisma.dailyMission.create({
+      data: {
+        userId,
+        date,
+        missions: { create: missions },
+      },
+      include: { missions: { orderBy: { createdAt: "asc" } } },
+    });
+    return serializeDailyMission(mission);
+  } catch (err) {
+    if (err.code === 'P2002') {
+      const mission = await prisma.dailyMission.findUnique({
+        where: { userId_date: { userId, date } },
+        include: { missions: { orderBy: { createdAt: "asc" } } },
+      });
+      return serializeDailyMission(mission);
+    }
+    throw err;
+  }
 }
 
 async function deleteDailyMission(userId, date) {

@@ -28,13 +28,9 @@ const RETRY_MAX_TOKENS = 150;
 async function callLLM(systemPrompt, userPrompt, retryCount = 0) {
   const provider = getLLMProvider();
 
-  console.log("[AI] Provider:", provider);
-  console.log("[AI] API key exists:", !!process.env.OPENROUTER_API_KEY);
-
   if (provider === 'openrouter') {
     const model = 'google/gemini-2.5-flash';
     const maxTokens = retryCount > 0 ? RETRY_MAX_TOKENS : PRIMARY_MAX_TOKENS;
-    console.log("[AI] Model:", model, "| max_tokens:", maxTokens, "| retry:", retryCount);
 
     try {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -56,15 +52,12 @@ async function callLLM(systemPrompt, userPrompt, retryCount = 0) {
         })
       });
 
-      console.log("[AI] Status:", response.status);
-
       if (response.status === 402 && retryCount === 0) {
         console.log("[AI] 402 insufficient credits, retrying with lower max_tokens...");
         return callLLM(systemPrompt, userPrompt, 1);
       }
 
       const data = await response.json();
-      console.log("[AI] Body:", JSON.stringify(data));
       return data.choices?.[0]?.message?.content || null;
     } catch (error) {
       console.error("[AI] OpenRouter Error:", error);
@@ -247,20 +240,9 @@ Provide a complete JSON object with the requested fields. Be specific about the 
 
   const llmResult = await callLLM(systemPrompt, userPrompt);
   if (llmResult) {
-    console.log("[AI] Using OpenRouter");
-    console.log("[AI] OpenRouter response:", llmResult);
-    try {
-      const jsonStart = llmResult.indexOf('{');
-      const jsonEnd = llmResult.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        return JSON.parse(llmResult.substring(jsonStart, jsonEnd + 1));
-      }
-    } catch {
-      // Fall through to engine
-    }
+    const parsed = parseLLMJsonResponse(llmResult);
+    if (parsed) return parsed;
   }
-
-  console.log("[AI] Using fallback");
   return generateOpeningFallback(data);
 }
 
@@ -282,15 +264,8 @@ Provide a complete JSON object with the requested fields. Be specific about the 
 
   const llmResult = await callLLM(systemPrompt, userPrompt);
   if (llmResult) {
-    try {
-      const jsonStart = llmResult.indexOf('{');
-      const jsonEnd = llmResult.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        return JSON.parse(llmResult.substring(jsonStart, jsonEnd + 1));
-      }
-    } catch {
-      // Fall through
-    }
+    const parsed = parseLLMJsonResponse(llmResult);
+    if (parsed) return parsed;
   }
   return generateTacticsFallback(data);
 }
@@ -311,15 +286,8 @@ Provide a complete JSON object with the requested fields. Be specific about the 
 
   const llmResult = await callLLM(systemPrompt, userPrompt);
   if (llmResult) {
-    try {
-      const jsonStart = llmResult.indexOf('{');
-      const jsonEnd = llmResult.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        return JSON.parse(llmResult.substring(jsonStart, jsonEnd + 1));
-      }
-    } catch {
-      // Fall through
-    }
+    const parsed = parseLLMJsonResponse(llmResult);
+    if (parsed) return parsed;
   }
   return generateEndgameFallback(data);
 }
@@ -345,15 +313,8 @@ Provide a complete JSON object with the requested fields. All recommendations mu
 
   const llmResult = await callLLM(systemPrompt, userPrompt);
   if (llmResult) {
-    try {
-      const jsonStart = llmResult.indexOf('{');
-      const jsonEnd = llmResult.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        return JSON.parse(llmResult.substring(jsonStart, jsonEnd + 1));
-      }
-    } catch {
-      // Fall through
-    }
+    const parsed = parseLLMJsonResponse(llmResult);
+    if (parsed) return parsed;
   }
   return generateCoachFallback(data);
 }

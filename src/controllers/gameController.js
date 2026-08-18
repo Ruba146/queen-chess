@@ -20,7 +20,8 @@ async function saveGame(req, res) {
 
 async function listMyGames(req, res) {
   try {
-    const games = await gameService.listMyGames(req.user.id);
+    const take = req.query.take ? parseInt(req.query.take, 10) : undefined;
+    const games = await gameService.listMyGames(req.user.id, { take });
     res.json(games);
   } catch (err) {
     res.status(500).json({ error: err.message });

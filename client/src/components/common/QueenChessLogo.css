@@ -1,0 +1,48 @@
+.queen-chess-logo {
+  display: block;
+  position: relative;
+}
+
+.queen-chess-logo__image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.queen-chess-logo--full {
+  width: 135px;
+  height: auto;
+  overflow: visible;
+}
+
+.queen-chess-logo--full .queen-chess-logo__image {
+  width: 100%;
+  height: auto;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+
+.queen-chess-logo--header {
+  width: 110px;
+  height: 82px;
+}
+
+.queen-chess-logo--header .queen-chess-logo__image {
+  width: 220px;
+  height: auto;
+}
+
+.queen-chess-logo--mark {
+  width: 34px;
+  height: 34px;
+}
+
+.queen-chess-logo--mark .queen-chess-logo__image {
+  width: 180px;
+  height: auto;
+  transform: translate(-50%, -50%) translateX(-5%);
+}

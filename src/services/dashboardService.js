@@ -2,6 +2,7 @@ const missionRepository = require("../repositories/missionRepository");
 const memoryRepository = require("../repositories/memoryRepository");
 const gameRepository = require("../repositories/gameRepository");
 const { generateDailyMissions } = require("./dailyMissionGenerator");
+const puzzleRepository = require("../repositories/puzzleRepository");
 
 async function getDashboard(userId, user) {
   const today = new Date();
@@ -42,6 +43,10 @@ async function getDashboard(userId, user) {
   const recentRecommendation = aiMemory?.memories
     ?.filter((m) => m.category === "goal" || m.category === "training")
     ?.slice(-1)?.[0]?.value || null;
+
+  const puzzleCollections = await puzzleRepository.listCollectionProgress(userId)
+  const totalPuzzlesSolved = puzzleCollections.reduce((sum, c) => sum + c.completedPuzzles, 0)
+  const totalPuzzleXp = puzzleCollections.reduce((sum, c) => sum + c.xpEarned, 0)
 
   let todayOpening = null;
   const openingValue = aiMemory?.memories
@@ -106,6 +111,8 @@ async function getDashboard(userId, user) {
         winRate: winRate + "%",
         avgAccuracy,
         totalGames,
+        totalPuzzlesSolved,
+        totalPuzzleXp,
       },
       todayGoal: todayMission?.missions?.[0]
         ? {
@@ -136,6 +143,7 @@ async function getDashboard(userId, user) {
             result: recentGame.result,
           }
         : null,
+      achievements: user.achievements || [],
     },
   };
 }

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Queen Chess Hero Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0818, #15111f);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Replicate the logged-in hero CSS */
+    .qc-home-hero-logged-in {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr minmax(300px, 1fr);
+      gap: 40px;
+      align-items: center;
+      padding: 32px 40px;
+      height: fit-content;
+      min-height: auto;
+      max-height: none;
+      overflow: visible;
+      background:
+        radial-gradient(circle at 75% 50%, rgba(152,88,234,0.25) 0%, transparent 45%),
+        radial-gradient(circle at 25% 70%, rgba(122,53,212,0.12) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(18,16,28,0.98), rgba(12,10,22,1));
+      border: 1px solid rgba(122,53,212,0.15);
+      border-radius: 12px;
+      box-shadow: 
+        0 32px 96px rgba(0,0,0,0.5),
+        0 0 100px rgba(122,53,212,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .qc-home-hero-title {
+      color: #ffffff;
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .qc-home-hero-title .accent {
+      color: #9858ea;
+    }
+
+    .qc-home-hero-sub {
+      color: #a1a1aa;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      max-width: 400px;
+      margin-bottom: 16px;
+    }
+
+    .qc-home-hero-visual {
+      position: relative;
+      right: auto;
+      top: auto;
+      bottom: auto;
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      min-height: 420px;
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      perspective: 1400px;
+    }
+
+    .qc-home-hero-visual::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(
+        circle,
+        rgba(152,88,234,0.4) 0%,
+        rgba(122,53,212,0.2) 30%,
+        rgba(88,40,180,0.08) 60%,
+        transparent 85%
+      );
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .qc-home-hero-board {
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      aspect-ratio: 1 / 1;
+      background: rgba(34,35,46,0.98);
+      border: 3px solid rgba(152,88,234,0.7);
+      box-shadow: 
+        0 0 60px rgba(122,53,212,0.4),
+        0 0 120px rgba(152,88,234,0.25),
+        0 40px 80px rgba(0,0,0,0.6),
+        inset 0 0 40px rgba(152,88,234,0.12);
+      padding: 12px;
+      border-radius: 24px;
+      overflow: visible;
+      z-index: 10;
+      transform: 
+        perspective(1400px)
+        rotateX(15deg)
+        rotateY(-18deg)
+        rotateZ(3deg)
+        translateZ(0);
+      transform-style: preserve-3d;
+    }
+
+    .qc-home-hero-board:hover {
+      transform: 
+        perspective(1400px)
+        rotateX(18deg)
+        rotateY(-20deg)
+        rotateZ(3deg)
+        translateZ(20px);
+    }
+
+    .qc-home-hero-board-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(152,88,234,0.3);
+      box-shadow: 0 0 40px rgba(152,88,234,0.2) inset;
+    }
+
+    .qc-home-hero-board-cell {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .qc-home-hero-board-cell.light {
+      background: #3d3a4a;
+    }
+
+    .qc-home-hero-board-cell.dark {
+      background: #252236;
+    }
+
+    .qc-home-hero-float-card {
+      padding: 10px 14px;
+      gap: 0.6rem;
+      border-radius: 14px;
+      background: rgba(24,22,35,0.88);
+      border: 1.5px solid rgba(152,88,234,0.4);
+      box-shadow: 
+        0 12px 40px rgba(0,0,0,0.4),
+        0 0 40px rgba(152,88,234,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      font-size: 0.75rem;
+      backdrop-filter: blur(12px);
+      position: absolute;
+      z-index: 20;
+      display: flex;
+      gap: 0.6rem;
+      color: #ffffff;
+      transition: all 0.3s ease;
+    }
+
+    .qc-home-hero-float-card:hover {
+      background: rgba(28,25,42,0.92);
+      border-color: rgba(152,88,234,0.6);
+      box-shadow: 
+        0 16px 48px rgba(0,0,0,0.5),
+        0 0 50px rgba(152,88,234,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .qc-home-hero-float-card-icon {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(152,88,234,0.25), rgba(122,53,212,0.15));
+      border: 1px solid rgba(152,88,234,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #9858ea;
+      font-size: 14px;
+    }
+
+    .qc-home-hero-float-card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .qc-home-hero-float-card-sub {
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: #a1a1aa;
+      line-height: 1.3;
+      margin-top: 3px;
+    }
+
+    .qc-home-hero-piece-float {
+      position: absolute;
+      font-size: 6rem;
+      opacity: 0.65;
+      color: #9858ea;
+      pointer-events: none;
+      z-index: 5;
+      filter: drop-shadow(0 0 24px rgba(152,88,234,0.7)) drop-shadow(0 8px 32px rgba(0,0,0,0.4));
+      text-shadow: 
+        0 0 30px rgba(152,88,234,0.6),
+        0 0 60px rgba(122,53,212,0.3);
+      line-height: 1;
+    }
+
+    .qc-home-hero-particle {
+      position: absolute;
+      border-radius: 50%;
+      background: #9858ea;
+      pointer-events: none;
+      z-index: 4;
+      box-shadow: 
+        0 0 12px rgba(152,88,234,0.8),
+        0 0 24px rgba(152,88,234,0.4);
+      filter: blur(0.5px);
+    }
+
+    /* Floating card positioning */
+    .card-top {
+      top: -25px;
+      right: -45px;
+      width: 145px;
+    }
+
+    .card-mid {
+      top: 50%;
+      right: -55px;
+      transform: translateY(-50%);
+      width: 145px;
+    }
+
+    .card-bot {
+      bottom: -20px;
+      right: -45px;
+      width: 145px;
+    }
+
+    /* Pieces */
+    .piece-top {
+      top: -65px;
+      left: 25%;
+      transform: rotate(18deg) scale(1.1);
+    }
+
+    .piece-bot {
+      bottom: -70px;
+      right: 15%;
+      font-size: 5.5rem;
+      transform: rotate(-22deg) scale(1.05);
+    }
+
+    /* Particles */
+    .particle-1 {
+      width: 5px;
+      height: 5px;
+      top: 15%;
+      left: 8%;
+      opacity: 0.7;
+      animation: particleFloat 4s ease-in-out infinite;
+    }
+
+    .particle-2 {
+      width: 3px;
+      height: 3px;
+      top: 65%;
+      right: 10%;
+      opacity: 0.5;
+      animation: particleFloat 3.5s ease-in-out infinite 0.5s;
+    }
+
+    .particle-3 {
+      width: 4px;
+      height: 4px;
+      bottom: 18%;
+      left: 12%;
+      opacity: 0.6;
+      animation: particleFloat 4.5s ease-in-out infinite 1s;
+    }
+
+    @keyframes particleFloat {
+      0%, 100% {
+        opacity: 0.4;
+        transform: translateY(0) translateX(0) scale(1);
+      }
+      25% {
+        opacity: 0.6;
+        transform: translateY(-12px) translateX(2px) scale(1.2);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(-20px) translateX(-3px) scale(1.4);
+      }
+      75% {
+        opacity: 0.5;
+        transform: translateY(-8px) translateX(4px) scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="qc-home-hero-logged-in">
+      <div style="z-index: 1;">
+        <h1 class="qc-home-hero-title">Train Smarter.<br><span class="accent">Play Stronger.</span></h1>
+        <p class="qc-home-hero-sub">Master chess strategy with AI-powered insights and personalized training programs designed to elevate your game.</p>
+      </div>
+
+      <div class="qc-home-hero-visual">
+        <!-- Chessboard -->
+        <div class="qc-home-hero-board">
+          <div class="qc-home-hero-board-grid">
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            
+            <div class="qc-home-hero-board-cell light">♖</div>
+            <div class="qc-home-hero-board-cell dark">♘</div>
+            <div class="qc-home-hero-board-cell light">♗</div>
+            <div class="qc-home-hero-board-cell dark">♕</div>
+            <div class="qc-home-hero-board-cell light">♔</div>
+            <div class="qc-home-hero-board-cell dark">♗</div>
+            <div class="qc-home-hero-board-cell light">♘</div>
+            <div class="qc-home-hero-board-cell dark">♖</div>
+            
+            <div class="qc-home-hero-board-cell dark">♙</div>
+            <div class="qc-home-hero-board-cell light">♙</div>
+            <div class="qc-home-hero-board-cell dark">♙</div>
+            <div class="qc-home-hero-board-cell light">♙</div>
+            <div class="qc-home-hero-board-cell dark">♙</div>
+            <div class="qc-home-hero-board-cell light">♙</div>
+            <div class="qc-home-hero-board-cell dark">♙</div>
+            <div class="qc-home-hero-board-cell light">♙</div>
+            
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            <div class="qc-home-hero-board-cell light"></div>
+            <div class="qc-home-hero-board-cell dark"></div>
+            
+            <div class="qc-home-hero-board-cell dark">♟</div>
+            <div class="qc-home-hero-board-cell light">♟</div>
+            <div class="qc-home-hero-board-cell dark">♟</div>
+            <div class="qc-home-hero-board-cell light">♟</div>
+            <div class="qc-home-hero-board-cell dark">♟</div>
+            <div class="qc-home-hero-board-cell light">♟</div>
+            <div class="qc-home-hero-board-cell dark">♟</div>
+            <div class="qc-home-hero-board-cell light">♟</div>
+            
+            <div class="qc-home-hero-board-cell light">♜</div>
+            <div class="qc-home-hero-board-cell dark">♞</div>
+            <div class="qc-home-hero-board-cell light">♝</div>
+            <div class="qc-home-hero-board-cell dark">♛</div>
+            <div class="qc-home-hero-board-cell light">♚</div>
+            <div class="qc-home-hero-board-cell dark">♝</div>
+            <div class="qc-home-hero-board-cell light">♞</div>
+            <div class="qc-home-hero-board-cell dark">♜</div>
+          </div>
+        </div>
+
+        <!-- Floating Cards -->
+        <div class="qc-home-hero-float-card card-top">
+          <div class="qc-home-hero-float-card-icon">🧠</div>
+          <div>
+            <p class="qc-home-hero-float-card-title">AI Coach</p>
+            <p class="qc-home-hero-float-card-sub">Get personalized tips</p>
+          </div>
+        </div>
+
+        <div class="qc-home-hero-float-card card-mid">
+          <div class="qc-home-hero-float-card-icon">🎯</div>
+          <div>
+            <p class="qc-home-hero-float-card-title">Tactical Training</p>
+            <p class="qc-home-hero-float-card-sub">Improve your vision</p>
+          </div>
+        </div>
+
+        <div class="qc-home-hero-float-card card-bot">
+          <div class="qc-home-hero-float-card-icon">👑</div>
+          <div>
+            <p class="qc-home-hero-float-card-title">Opening Mastery</p>
+            <p class="qc-home-hero-float-card-sub">Master openings like a pro</p>
+          </div>
+        </div>
+
+        <!-- Decorative Pieces -->
+        <div class="qc-home-hero-piece-float piece-top">♛</div>
+        <div class="qc-home-hero-piece-float piece-bot">♞</div>
+
+        <!-- Particles -->
+        <div class="qc-home-hero-particle particle-1"></div>
+        <div class="qc-home-hero-particle particle-2"></div>
+        <div class="qc-home-hero-particle particle-3"></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

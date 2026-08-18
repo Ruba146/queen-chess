@@ -57,6 +57,15 @@ async function updateProfilePicture(req, res) {
   }
 }
 
+async function getRatingHistory(req, res) {
+  try {
+    const result = await authService.getRatingHistory(req.user.id, req.params.mode);
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message || "Server error" });
+  }
+}
+
 async function getExtendedStats(req, res) {
   try {
     const stats = await authService.getExtendedStats(req.user.id, req.params.mode);
@@ -74,4 +83,5 @@ module.exports = {
   changePassword,
   updateProfilePicture,
   getExtendedStats,
+  getRatingHistory,
 };

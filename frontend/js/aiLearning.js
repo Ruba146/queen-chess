@@ -108,14 +108,19 @@ export function loadAILearning() {
     ? SECTIONS.find((s) => s.id === activeSection)?.renderFn() || ''
     : '';
 
+const progress = `<div class="ai-panel-progress"><div class="ai-panel-progress-label"><span>Learning progress</span><span id="aiOverallProgress">0%</span></div><div class="ai-panel-progress-track"><div class="ai-panel-progress-fill" id="aiOverallProgressFill"></div></div></div>`;
+
   tabContent.innerHTML = `
     <div class="ai-learning-page">
       <div class="ai-hero">
         <div class="ai-hero-glow"></div>
+        <div class="ai-hero-glow ai-hero-glow-2"></div>
+        <div class="ai-hero-piece ai-hero-knight">♞</div>
         <div class="ai-hero-content">
           <span class="ai-hero-badge"><span class="ai-hero-badge-dot"></span> Adaptive AI Studio</span>
           <h1>Your Personal <span class="ai-hero-accent">Chess Academy</span></h1>
           <p>Pick a module and let the AI coach guide you through openings, tactics, endgames and personalized training — all in one place.</p>
+          ${progress}
         </div>
       </div>
       <div class="ai-cards-grid">

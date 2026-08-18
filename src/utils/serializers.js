@@ -76,6 +76,7 @@ function serializeGame(game) {
   return {
     ...withLegacyId(game),
     user: game.userId,
+    moves: game.moves || [],
     ratingsBefore: {
       player1: game.ratingsBeforePlayer1,
       player2: game.ratingsBeforePlayer2,
