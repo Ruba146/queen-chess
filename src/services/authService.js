@@ -94,6 +94,20 @@ async function updateProfilePicture(userId, profilePicture) {
   });
 }
 
+async function getRatingHistory(userId, mode) {
+  const user = await userRepository.getUserById(userId);
+  const history = user.ratingHistory?.[mode] || [];
+  const currentRating = user.ratings?.[mode] || 1200;
+  
+  return {
+    currentRating,
+    history: history.map((entry) => ({
+      rating: entry.rating,
+      date: entry.date,
+    })),
+  };
+}
+
 async function getExtendedStats(userId, mode) {
   const user = await userRepository.getUserById(userId);
 
@@ -165,4 +179,5 @@ module.exports = {
   changePassword,
   updateProfilePicture,
   getExtendedStats,
+  getRatingHistory,
 };

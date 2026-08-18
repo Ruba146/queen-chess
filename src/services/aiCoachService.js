@@ -1,5 +1,6 @@
 const memoryRepository = require("../repositories/memoryRepository");
 const { generateChatResponse } = require("../ai/aiExplanationService");
+const puzzleRepository = require("../repositories/puzzleRepository");
 
 const pageContexts = {
   home: "You're on your dashboard. Ask me about your stats, today's goals, or recommendations to improve.",
@@ -11,6 +12,7 @@ const pageContexts = {
   premium: "You're on the premium page. I can tell you about premium features.",
   analysis: "You're analyzing a game. I can explain every move, highlight critical positions, and point out tactical patterns.",
   "opening-explorer": "You're exploring openings. I can explain plans, traps, common mistakes, and typical middlegame positions for any opening.",
+  puzzles: "You're doing puzzles. I can explain tactics, analyze your weak themes, and suggest training plans.",
   default: "I'm your AI Chess Coach. Ask me anything about chess!",
 };
 
@@ -22,11 +24,13 @@ const chatPageContexts = {
   quiz: "The user is taking a chess quiz.",
   profile: "The user is viewing their profile.",
   premium: "The user is on the premium features page.",
+  puzzles: "The user is doing chess puzzles.",
 };
 
 async function getContext(userId, user, page) {
   const contextMessage = pageContexts[page] || pageContexts.default;
   let personalNote = "";
+  let puzzleContext = "";
 
   try {
     const memory = await memoryRepository.getAIMemory(userId);
@@ -46,10 +50,35 @@ async function getContext(userId, user, page) {
     // Non-critical.
   }
 
+  try {
+    const themeStats = await puzzleRepository.getUserPuzzleThemeStats(userId);
+    if (themeStats.length > 0) {
+      const weakThemes = themeStats
+        .filter((t) => t.attempts > 0)
+        .sort((a, b) => (a.mastery || 0) - (b.mastery || 0))
+        .slice(0, 3);
+      if (weakThemes.length > 0) {
+        puzzleContext = ` Your weakest tactical themes are: ${weakThemes.map((t) => `${t.theme} (mastery: ${Math.round(t.mastery || 0)}%)`).join(", ")}.`;
+      }
+      const strongThemes = themeStats
+        .filter((t) => (t.mastery || 0) >= 75)
+        .slice(0, 2);
+      if (strongThemes.length > 0) {
+        puzzleContext += ` You have mastered: ${strongThemes.map((t) => t.theme).join(", ")}.`;
+      }
+    }
+    const ratingData = await puzzleRepository.getUserPuzzleRating(userId);
+    if (ratingData) {
+      puzzleContext += ` Your puzzle rating is ${ratingData.rating} (highest: ${ratingData.highestRating}).`;
+    }
+  } catch {
+    // Non-critical.
+  }
+
   return {
     success: true,
     data: {
-      welcome: contextMessage + personalNote,
+      welcome: contextMessage + personalNote + puzzleContext,
       page,
     },
   };
@@ -70,6 +99,7 @@ async function chat(userId, message, page) {
           if (page === "learning" && ["opening", "skill", "weakness"].includes(m.category)) return true;
           if (page === "play" && ["opening", "preference"].includes(m.category)) return true;
           if (page === "my-games" && ["weakness", "training", "goal"].includes(m.category)) return true;
+          if (page === "puzzles" && ["weakness", "training", "goal"].includes(m.category)) return true;
           return ["opening", "skill", "preference", "goal"].includes(m.category);
         })
         .slice(0, 5);
@@ -85,8 +115,37 @@ async function chat(userId, message, page) {
     // Non-critical.
   }
 
+  try {
+    const themeStats = await puzzleRepository.getUserPuzzleThemeStats(userId);
+    if (themeStats.length > 0) {
+      const weakThemes = themeStats
+        .filter((t) => t.attempts > 3 && (t.mastery || 0) < 50)
+        .sort((a, b) => (a.mastery || 0) - (b.mastery || 0))
+        .slice(0, 3);
+      const strongThemes = themeStats
+        .filter((t) => (t.mastery || 0) >= 75)
+        .slice(0, 2);
+      if (weakThemes.length > 0 || strongThemes.length > 0) {
+        contextStr += "\nPuzzle performance context:";
+        if (weakThemes.length > 0) {
+          contextStr += `\nWeak themes: ${weakThemes.map((t) => `${t.theme} (${Math.round(t.accuracy)}% accuracy)`).join(", ")}`;
+        }
+        if (strongThemes.length > 0) {
+          contextStr += `\nStrong themes: ${strongThemes.map((t) => `${t.theme} (${Math.round(t.accuracy)}% accuracy)`).join(", ")}`;
+        }
+      }
+    }
+    const ratingData = await puzzleRepository.getUserPuzzleRating(userId);
+    if (ratingData) {
+      contextStr += `\nPuzzle rating: ${ratingData.rating} (peak: ${ratingData.highestRating})`;
+    }
+  } catch {
+    // Non-critical.
+  }
+
+  const difficultyHint = page === "puzzles" ? "The user is currently solving puzzles. Be encouraging and specific about tactical patterns." : "";
   const messagesForAI = [
-    { role: "assistant", content: `[Context: ${contextStr}]` },
+    { role: "assistant", content: `[Context: ${contextStr}] ${difficultyHint}` },
     { role: "user", content: message },
   ];
 

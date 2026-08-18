@@ -21,6 +21,16 @@ async function generateDailyMissions(userId, userData) {
     xpReward: 15,
   });
 
+  missions.push({
+    title: "Complete a Puzzle Collection",
+    description: "Work through puzzles in your favorite category.",
+    type: "puzzle",
+    target: 1,
+    progress: 0,
+    completed: false,
+    xpReward: 10,
+  });
+
   if (rating < 1800) {
     missions.push({
       title: "Study One Opening",

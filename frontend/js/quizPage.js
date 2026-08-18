@@ -204,11 +204,11 @@ async function startQuiz(category) {
 
   try {
     // Fetch puzzles from backend
-    const response = await apiFetch('/api/quiz/generate', {
+    const response = await apiFetch('/api/ai/quiz/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        category,
+        categories: [category],
         count: pageState.puzzleCount
       })
     });

@@ -64,9 +64,10 @@ function renderClassicLearning() {
   const tabContent = document.getElementById('learningTabContent');
   if (!tabContent) return;
 
-  tabContent.innerHTML = `
+tabContent.innerHTML = `
     <div class="learning-hero">
       <div class="learning-hero-glow"></div>
+      <div class="learning-hero-glow learning-hero-glow-2"></div>
       <div class="learning-hero-piece learning-hero-queen">♛</div>
       <div class="learning-hero-piece learning-hero-rook">♜</div>
       <div class="learning-hero-content">
@@ -74,7 +75,7 @@ function renderClassicLearning() {
         <h1>Master Chess, <span class="learning-hero-accent">Intelligently.</span></h1>
         <p>Learn from the fundamentals to advanced strategies with a curated, AI-enhanced curriculum. Every lesson is explained clearly and built to help you improve, one move at a time.</p>
         <div class="learning-hero-actions">
-          <button class="learning-hero-cta" onclick="document.getElementById('collapsible-basics')?.scrollIntoView({behavior:'smooth',block:'center'})">🚀 Start Learning</button>
+          <button class="learning-hero-cta" onclick="document.getElementById('collapsible-basics')?.scrollIntoView({behavior:'smooth',block:'center'})">🚀 Continue Learning</button>
           <button class="learning-hero-cta-secondary" data-jump-ai>🤖 Try AI Learning</button>
         </div>
       </div>
@@ -93,36 +94,49 @@ function renderClassicLearning() {
         </div>
       </div>
     </div>
-    <div class="learning-category-grid">
-      <div class="learning-category-card" data-cat="basics">
-        <div class="learning-category-icon">♟</div>
-        <div class="learning-category-title">Chess Basics</div>
-        <div class="learning-category-desc">Pieces, rules &amp; the fundamentals of the board.</div>
-        <span class="learning-category-link">Explore →</span>
+    <div class="learning-category-block">
+      <div class="learning-section-head">
+        <span class="learning-eyebrow">Learning Paths</span>
+        <h2>Choose your <span class="learning-accent">focus</span></h2>
+        <p>Pick a discipline and dive into a structured, AI-guided curriculum.</p>
       </div>
-      <div class="learning-category-card" data-cat="openings">
-        <div class="learning-category-icon">📖</div>
-        <div class="learning-category-title">Openings</div>
-        <div class="learning-category-desc">Start strong and seize the initiative early.</div>
-        <span class="learning-category-link">Explore →</span>
-      </div>
-      <div class="learning-category-card" data-cat="tactics">
-        <div class="learning-category-icon">⚡</div>
-        <div class="learning-category-title">Tactics</div>
-        <div class="learning-category-desc">Sharpen calculation and spot winning patterns.</div>
-        <span class="learning-category-link">Explore →</span>
-      </div>
-      <div class="learning-category-card" data-cat="endgames">
-        <div class="learning-category-icon">🏁</div>
-        <div class="learning-category-title">Endgames</div>
-        <div class="learning-category-desc">Convert advantages and convert precision.</div>
-        <span class="learning-category-link">Explore →</span>
-      </div>
-      <div class="learning-category-card" data-cat="coach">
-        <div class="learning-category-icon">🤖</div>
-        <div class="learning-category-title">Coach Tips</div>
-        <div class="learning-category-desc">Personalized guidance from your AI assistant.</div>
-        <span class="learning-category-link">Explore →</span>
+      <div class="learning-category-grid">
+        <div class="learning-category-card learning-cat-feature" data-cat="basics">
+          <div class="learning-category-glow"></div>
+          <div class="learning-category-icon">♟</div>
+          <div class="learning-category-title">Chess Basics</div>
+          <div class="learning-category-desc">Pieces, rules &amp; the fundamentals of the board.</div>
+          <div class="learning-category-meta"><span class="learning-cat-tag">Beginner</span><span class="learning-cat-count">6 lessons</span></div>
+          <span class="learning-category-link">Explore →</span>
+        </div>
+        <div class="learning-category-card" data-cat="openings">
+          <div class="learning-category-icon">📖</div>
+          <div class="learning-category-title">Openings</div>
+          <div class="learning-category-desc">Start strong and seize the initiative early.</div>
+          <div class="learning-category-meta"><span class="learning-cat-tag">All levels</span><span class="learning-cat-count">7 openings</span></div>
+          <span class="learning-category-link">Explore →</span>
+        </div>
+        <div class="learning-category-card" data-cat="tactics">
+          <div class="learning-category-icon">⚡</div>
+          <div class="learning-category-title">Tactics</div>
+          <div class="learning-category-desc">Sharpen calculation and spot winning patterns.</div>
+          <div class="learning-category-meta"><span class="learning-cat-tag">Intermediate</span><span class="learning-cat-count">12 patterns</span></div>
+          <span class="learning-category-link">Explore →</span>
+        </div>
+        <div class="learning-category-card" data-cat="endgames">
+          <div class="learning-category-icon">🏁</div>
+          <div class="learning-category-title">Endgames</div>
+          <div class="learning-category-desc">Convert advantages and convert precision.</div>
+          <div class="learning-category-meta"><span class="learning-cat-tag">Advanced</span><span class="learning-cat-count">8 techniques</span></div>
+          <span class="learning-category-link">Explore →</span>
+        </div>
+        <div class="learning-category-card" data-cat="coach">
+          <div class="learning-category-icon">🤖</div>
+          <div class="learning-category-title">Coach Tips</div>
+          <div class="learning-category-desc">Personalized guidance from your AI assistant.</div>
+          <div class="learning-category-meta"><span class="learning-cat-tag">AI</span><span class="learning-cat-count">Always on</span></div>
+          <span class="learning-category-link">Explore →</span>
+        </div>
       </div>
     </div>
     <div class="learning-sections-container" id="learningSections">

@@ -21,170 +21,178 @@ const accuracyColor = gameData.accuracy >= 80 ? '#16a34a' : gameData.accuracy >=
     const resultIsWin = String(result).toLowerCase().includes('win');
     const resultIsDraw = String(result).toLowerCase() === 'draw';
 
-    document.getElementById('content').innerHTML = `
-      <div class="analysis-tabs-page analysis-page">
-        <div class="tabs-bar" style="display:inline-flex;gap:10px;margin:0 auto 30px;flex-wrap:wrap;padding:6px;background:rgba(255,255,255,0.85);border:1px solid #ececf4;border-radius:18px;backdrop-filter:blur(14px);box-shadow:0 8px 24px rgba(124,58,237,0.06);justify-content:center;">
-          <button class="tab-btn" id="tabBtnAnalysis" onclick="openAnalysisTab('analysis')" style="padding:10px 22px;border-radius:12px;border:1px solid rgba(168,85,247,0.4);background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;cursor:pointer;font-weight:600;box-shadow:0 6px 18px rgba(124,58,237,0.25);">Analysis</button>
-          <button class="tab-btn" id="tabBtnMoves" onclick="openAnalysisTab('moves')" style="padding:10px 22px;border-radius:12px;border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.10);color:#16a34a;cursor:pointer;font-weight:600;">Moves</button>
-        </div>
+document.getElementById('content').innerHTML = `
+      <div class="anl-page">
+
+        <!-- ============ HERO ============ -->
+        <section class="anl-hero js-reveal">
+          <div class="anl-hero-glow anl-hero-glow-1"></div>
+          <div class="anl-hero-glow anl-hero-glow-2"></div>
+          <div class="anl-hero-piece anl-hero-queen">♛</div>
+          <div class="anl-hero-piece anl-hero-knight">♞</div>
+          <div class="anl-hero-content">
+            <span class="anl-hero-badge"><span class="anl-hero-badge-dot"></span> AI PERFORMANCE REPORT</span>
+            <h1 class="anl-hero-title">Game <span class="anl-hero-accent">Analysis</span></h1>
+            <p class="anl-hero-sub">${gameData.opening || 'Unknown Opening'} • ${gameData.totalMoves || 0} moves • ${gameData.accuracy || 0}% accuracy</p>
+            <div class="anl-hero-chips">
+              <span class="rank-badge ${(gameData.rankAfterGame || 'beginner').toLowerCase()}">🏅 ${gameData.rankAfterGame || 'Beginner'}</span>
+              <span class="level-badge ${(gameData.playerLevelAfterGame || 'beginner').toLowerCase()}">📊 ${gameData.playerLevelAfterGame || 'Beginner'}</span>
+              ${gameData.ratingChange !== undefined ? `<span class="anl-rating-chip" style="color:${gameData.ratingChange > 0 ? '#16a34a' : gameData.ratingChange < 0 ? '#dc2626' : '#71717a'};">Rating: ${gameData.ratingChange > 0 ? '+' : ''}${gameData.ratingChange}</span>` : ''}
+            </div>
+            <div class="anl-hero-actions">
+              <button class="anl-hero-tab-btn active" id="tabBtnAnalysis" onclick="openAnalysisTab('analysis')">📊 Analysis</button>
+              <button class="anl-hero-tab-btn" id="tabBtnMoves" onclick="openAnalysisTab('moves')">♟ Moves</button>
+            </div>
+          </div>
+          <div class="anl-hero-score">
+            <div class="anl-hero-score-ring">
+              <div class="anl-hero-score-inner">
+                <span class="anl-hero-score-value" style="color:${accuracyColor};">${gameData.accuracy || 0}%</span>
+                <span class="anl-hero-score-label">Accuracy</span>
+              </div>
+            </div>
+            <div class="anl-hero-score-meta">
+              <div class="anl-hero-score-item"><span class="anl-hsi-label">Result</span><span class="anl-hsi-value ${resultIsWin ? 'win' : resultIsDraw ? 'draw' : ''}">${result}</span></div>
+              <div class="anl-hero-score-item"><span class="anl-hsi-label">Performance</span><span class="anl-hsi-value" style="color:${perfColor};">${gameData.performanceScore || 0}%</span></div>
+              <div class="anl-hero-score-item"><span class="anl-hsi-label">Moves</span><span class="anl-hsi-value">${gameData.totalMoves || 0}</span></div>
+            </div>
+          </div>
+        </section>
 
         <div id="analysisTab" class="analysis-tab" style="display:block;">
-          <div class="ai-report">
+          <div class="anl-report">
 
-            <!-- HERO -->
-            <div class="analysis-hero premium-card">
-              <div class="analysis-hero-glow"></div>
-              <div class="analysis-hero-piece analysis-hero-queen">♛</div>
-              <div class="analysis-hero-piece analysis-hero-pawn">♟</div>
-              <div class="analysis-hero-content">
-                <span class="landing-eyebrow"><span class="landing-hero-badge-dot"></span> Post-Game Report</span>
-                <h1>Performance <span class="landing-accent">Report</span></h1>
-                <p class="analysis-hero-sub">${gameData.opening || 'Unknown Opening'} • ${gameData.totalMoves || 0} moves • ${gameData.accuracy || 0}% accuracy</p>
-                <div class="analysis-hero-badges">
-                  <span class="rank-badge ${(gameData.rankAfterGame || 'beginner').toLowerCase()}">🏅 ${gameData.rankAfterGame || 'Beginner'}</span>
-                  <span class="level-badge ${(gameData.playerLevelAfterGame || 'beginner').toLowerCase()}">📊 ${gameData.playerLevelAfterGame || 'Beginner'}</span>
-                  ${gameData.ratingChange !== undefined ? `<span class="analysis-rating-chip" style="color:${gameData.ratingChange > 0 ? '#16a34a' : gameData.ratingChange < 0 ? '#dc2626' : '#71717a'};">Rating: ${gameData.ratingChange > 0 ? '+' : ''}${gameData.ratingChange}</span>` : ''}
+            <!-- ============ KPI GRID ============ -->
+            <section class="anl-kpis">
+              <div class="anl-kpi anl-kpi-accent">
+                <span class="anl-kpi-icon">🎯</span>
+                <div class="anl-kpi-body"><span class="anl-kpi-label">Accuracy</span><span class="anl-kpi-value" style="color:${accuracyColor};">${gameData.accuracy || 0}%</span></div>
+              </div>
+              <div class="anl-kpi">
+                <span class="anl-kpi-icon">📊</span>
+                <div class="anl-kpi-body"><span class="anl-kpi-label">Performance</span><span class="anl-kpi-value" style="color:${perfColor};">${gameData.performanceScore || 0}%</span></div>
+              </div>
+              <div class="anl-kpi">
+                <span class="anl-kpi-icon">♟</span>
+                <div class="anl-kpi-body"><span class="anl-kpi-label">Total Moves</span><span class="anl-kpi-value">${gameData.totalMoves || 0}</span></div>
+              </div>
+              <div class="anl-kpi">
+                <span class="anl-kpi-icon">🎮</span>
+                <div class="anl-kpi-body"><span class="anl-kpi-label">Playing Style</span><span class="anl-kpi-value anl-kpi-small">${gameData.playingStyle || 'Balanced'}</span></div>
+              </div>
+              <div class="anl-kpi">
+                <span class="anl-kpi-icon">📉</span>
+                <div class="anl-kpi-body"><span class="anl-kpi-label">Avg CP Loss</span><span class="anl-kpi-value">${gameData.averageCentipawnLoss || 0}</span></div>
+              </div>
+            </section>
+
+            <!-- ============ MOVE QUALITY ============ -->
+            <section class="anl-section">
+              <div class="anl-section-head">
+                <span class="anl-eyebrow">Move Quality</span>
+                <h2>Performance <span class="anl-accent">Breakdown</span></h2>
+              </div>
+              <div class="anl-quality-grid">
+                <div class="anl-quality-card anl-quality-brilliant"><span class="anl-quality-icon">💎</span><span class="anl-quality-value">${gameData.brilliantMoves || 0}</span><span class="anl-quality-label">Brilliant Moves</span></div>
+                <div class="anl-quality-card anl-quality-best"><span class="anl-quality-icon">✅</span><span class="anl-quality-value">${gameData.bestMoves || 0}</span><span class="anl-quality-label">Best Moves</span></div>
+                <div class="anl-quality-card anl-quality-inaccuracy"><span class="anl-quality-icon">⚡</span><span class="anl-quality-value">${gameData.inaccuracies || 0}</span><span class="anl-quality-label">Inaccuracies</span></div>
+                <div class="anl-quality-card anl-quality-mistake"><span class="anl-quality-icon">⚠</span><span class="anl-quality-value">${gameData.mistakes || 0}</span><span class="anl-quality-label">Mistakes</span></div>
+                <div class="anl-quality-card anl-quality-blunder"><span class="anl-quality-icon">❌</span><span class="anl-quality-value">${gameData.blunders || 0}</span><span class="anl-quality-label">Blunders</span></div>
+                <div class="anl-quality-card anl-quality-missed"><span class="anl-quality-icon">🎯</span><span class="anl-quality-value">${gameData.missedWins || 0}</span><span class="anl-quality-label">Missed Wins</span></div>
+              </div>
+            </section>
+
+            <!-- ============ PHASE + EVAL GRAPH ============ -->
+            <section class="anl-section anl-section-split">
+              <div class="anl-phase-card">
+                <div class="anl-section-head">
+                  <span class="anl-eyebrow">Game Phases</span>
+                  <h2>Phase <span class="anl-accent">Analysis</span></h2>
+                </div>
+                <div class="phase-score">
+                  <div class="phase-name">📖 Opening</div>
+                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.openingScore || 50}%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div>
+                  <div class="phase-value" style="color:#a855f7;">${gameData.openingScore || 50}%</div>
+                </div>
+                <div class="phase-score">
+                  <div class="phase-name">⚔ Middle Game</div>
+                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.middleGameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
+                  <div class="phase-value" style="color:#c084fc;">${gameData.middleGameScore || 50}%</div>
+                </div>
+                <div class="phase-score">
+                  <div class="phase-name">♚ Endgame</div>
+                  <div class="phase-bar"><div class="phase-fill" style="width:${gameData.endgameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#e879f9);"></div></div>
+                  <div class="phase-value" style="color:#e879f9;">${gameData.endgameScore || 50}%</div>
                 </div>
               </div>
-              <div class="analysis-hero-score">
-                <span class="analysis-hero-score-label">Result</span>
-                <span class="analysis-hero-score-value ${resultIsWin ? 'win' : resultIsDraw ? 'draw' : ''}">${result}</span>
-                <span class="analysis-hero-score-sub">${gameData.accuracy || 0}% accuracy</span>
-              </div>
-            </div>
-
-            <!-- KPI CARDS -->
-            <div class="analysis-kpis">
-              <div class="analysis-kpi analysis-kpi-accent">
-                <span class="analysis-kpi-label">🎯 Accuracy</span>
-                <span class="analysis-kpi-value" style="color:${accuracyColor};">${gameData.accuracy || 0}%</span>
-                <span class="analysis-kpi-sub">Move quality</span>
-              </div>
-              <div class="analysis-kpi">
-                <span class="analysis-kpi-label">📊 Performance</span>
-                <span class="analysis-kpi-value" style="color:${perfColor};">${gameData.performanceScore || 0}%</span>
-                <span class="analysis-kpi-sub">Overall score</span>
-              </div>
-              <div class="analysis-kpi">
-                <span class="analysis-kpi-label">♟ Total Moves</span>
-                <span class="analysis-kpi-value">${gameData.totalMoves || 0}</span>
-                <span class="analysis-kpi-sub">Game length</span>
-              </div>
-              <div class="analysis-kpi">
-                <span class="analysis-kpi-label">📉 Avg CP Loss</span>
-                <span class="analysis-kpi-value">${gameData.averageCentipawnLoss || 0}</span>
-                <span class="analysis-kpi-sub">Precision</span>
-              </div>
-            </div>
-
-            <!-- OVERVIEW -->
-            <div class="report-section report-full-width">
-                <h3>📋 Overview</h3>
-                <div class="report-grid">
-                    <div class="report-item"><div class="item-label">🎯 Accuracy</div><div class="item-value" style="color:${accuracyColor}">${gameData.accuracy || 0}%</div></div>
-                    <div class="report-item"><div class="item-label">📊 Performance</div><div class="item-value" style="color:${perfColor}">${gameData.performanceScore || 0}%</div></div>
-                    <div class="report-item"><div class="item-label">♟ Total Moves</div><div class="item-value">${gameData.totalMoves || 0}</div></div>
-                    <div class="report-item"><div class="item-label">🎮 Playing Style</div><div class="item-value" style="font-size:16px;">${gameData.playingStyle || 'Balanced'}</div></div>
-                    <div class="report-item"><div class="item-label">📉 Avg Centipawn Loss</div><div class="item-value">${gameData.averageCentipawnLoss || 0}</div></div>
-                    <div class="report-item"><div class="item-label">💎 Brilliant Moves</div><div class="item-value" style="color:#0891b2;">${gameData.brilliantMoves || 0}</div></div>
-                    <div class="report-item"><div class="item-label">✅ Best Moves</div><div class="item-value" style="color:#16a34a;">${gameData.bestMoves || 0}</div></div>
-                    <div class="report-item"><div class="item-label">⚡ Inaccuracies</div><div class="item-value" style="color:#ea580c;">${gameData.inaccuracies || 0}</div></div>
-                    <div class="report-item"><div class="item-label">⚠ Mistakes</div><div class="item-value" style="color:#ea580c;">${gameData.mistakes || 0}</div></div>
-                    <div class="report-item"><div class="item-label">❌ Blunders</div><div class="item-value" style="color:#dc2626;">${gameData.blunders || 0}</div></div>
-                    <div class="report-item"><div class="item-label">🎯 Missed Wins</div><div class="item-value" style="color:#dc2626;">${gameData.missedWins || 0}</div></div>
-                    <div class="report-item"><div class="item-label">🏆 Result</div><div class="item-value">${gameData.result || 'Unknown'}</div></div>
+              <div class="anl-graph-card">
+                <div class="anl-section-head">
+                  <span class="anl-eyebrow">Evaluation</span>
+                  <h2>Graph <span class="anl-accent">Trend</span></h2>
                 </div>
-            </div>
-
-            <!-- EVALUATION GRAPH -->
-            <div class="report-section report-full-width">
-                <div class="report-section-head">
-                    <h3>📈 Evaluation Graph</h3>
-                    <span class="report-section-tag">Move-by-move</span>
-                </div>
-                <div class="graph-container" id="evalGraphContainer">
-                    <canvas id="evalCanvas" class="graph-canvas"></canvas>
+                <div class="graph-container anl-graph-container" id="evalGraphContainer">
+                  <canvas id="evalCanvas" class="graph-canvas"></canvas>
                 </div>
                 <div class="graph-labels">
-                    <span>Move 1</span>
-                    <span style="color:#16a34a;">Best Line</span>
-                    <span style="color:#7c3aed;">Your Moves</span>
-                    <span>Move ${gameData.totalMoves || 0}</span>
+                  <span>Move 1</span>
+                  <span style="color:#16a34a;">Best Line</span>
+                  <span style="color:#7c3aed;">Your Moves</span>
+                  <span>Move ${gameData.totalMoves || 0}</span>
                 </div>
-            </div>
+              </div>
+            </section>
 
-            <!-- PHASE ANALYSIS -->
-            <div class="report-section report-full-width">
-                <div class="report-section-head">
-                    <h3>🎯 Game Phase Analysis</h3>
-                    <span class="report-section-tag">Opening → Endgame</span>
+            <!-- ============ STRENGTHS / WEAKNESSES ============ -->
+            <section class="anl-section anl-section-duo">
+              ${gameData.strengths && gameData.strengths.length > 0 ? `
+              <div class="anl-strength-card">
+                <div class="anl-section-head">
+                  <span class="anl-eyebrow anl-eyebrow-green">Strengths</span>
+                  <h2>What went <span class="anl-accent-green">right</span></h2>
                 </div>
-                <div class="phase-score">
-                    <div class="phase-name">📖 Opening</div>
-                    <div class="phase-bar"><div class="phase-fill" style="width:${gameData.openingScore || 50}%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div>
-                    <div class="phase-value" style="color:#a855f7;">${gameData.openingScore || 50}%</div>
+                ${gameData.strengths.map((item) => `<div class="strength-item">✓ ${item}</div>`).join('')}
+              </div>` : ''}
+              ${gameData.weaknesses && gameData.weaknesses.length > 0 ? `
+              <div class="anl-weakness-card">
+                <div class="anl-section-head">
+                  <span class="anl-eyebrow anl-eyebrow-red">Areas to Improve</span>
+                  <h2>Where to <span class="anl-accent-red">grow</span></h2>
                 </div>
-                <div class="phase-score">
-                    <div class="phase-name">⚔ Middle Game</div>
-                    <div class="phase-bar"><div class="phase-fill" style="width:${gameData.middleGameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
-                    <div class="phase-value" style="color:#c084fc;">${gameData.middleGameScore || 50}%</div>
-                </div>
-                <div class="phase-score">
-                    <div class="phase-name">♚ Endgame</div>
-                    <div class="phase-bar"><div class="phase-fill" style="width:${gameData.endgameScore || 50}%;background:linear-gradient(90deg,#7c3aed,#e879f9);"></div></div>
-                    <div class="phase-value" style="color:#e879f9;">${gameData.endgameScore || 50}%</div>
-                </div>
-            </div>
+                ${gameData.weaknesses.map((item) => `<div class="weakness-item">✗ ${item}</div>`).join('')}
+              </div>` : ''}
+            </section>
 
-            <!-- STRENGTHS / WEAKNESSES -->
-            <div class="report-grid-dashboard">
-                ${gameData.strengths && gameData.strengths.length > 0 ? `
-                <div class="report-section">
-                    <div class="report-section-head">
-                        <h3>💪 Strengths</h3>
-                        <span class="report-section-tag">Keep it up</span>
-                    </div>
-                    ${gameData.strengths.map((item) => `<div class="strength-item">✓ ${item}</div>`).join('')}
-                </div>` : ''}
-                ${gameData.weaknesses && gameData.weaknesses.length > 0 ? `
-                <div class="report-section">
-                    <div class="report-section-head">
-                        <h3>⚠ Areas to Improve</h3>
-                        <span class="report-section-tag">Focus here</span>
-                    </div>
-                    ${gameData.weaknesses.map((item) => `<div class="weakness-item">✗ ${item}</div>`).join('')}
-                </div>` : ''}
-            </div>
+            <!-- ============ PERFORMANCE METRICS ============ -->
+            <section class="anl-section">
+              <div class="anl-section-head">
+                <span class="anl-eyebrow">Skill Metrics</span>
+                <h2>Performance <span class="anl-accent">Metrics</span></h2>
+              </div>
+              <div class="report-grid anl-metrics-grid">
+                <div class="report-item"><div class="item-label">Tactical Ability</div><div class="item-value" style="font-size:16px;">${gameData.tacticalAbilityScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Positional Play</div><div class="item-value" style="font-size:16px;">${gameData.positionalPlayScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Decision Making</div><div class="item-value" style="font-size:16px;">${gameData.decisionMakingScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Consistency</div><div class="item-value" style="font-size:16px;">${gameData.consistencyScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Piece Activity</div><div class="item-value" style="font-size:16px;">${gameData.pieceActivityScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">King Safety</div><div class="item-value" style="font-size:16px;">${gameData.kingSafetyScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Endgame Quality</div><div class="item-value" style="font-size:16px;">${gameData.endgameQualityScore || 50}%</div></div>
+                <div class="report-item"><div class="item-label">Material Balance</div><div class="item-value" style="font-size:16px;">${gameData.materialBalance || 0}</div></div>
+              </div>
+            </section>
 
-            <!-- PERFORMANCE METRICS + RECOMMENDATIONS -->
-            <div class="report-grid-dashboard">
-                <div class="report-section">
-                    <div class="report-section-head">
-                        <h3>🎯 Performance Metrics</h3>
-                        <span class="report-section-tag">Skill breakdown</span>
-                    </div>
-                    <div class="report-grid" style="grid-template-columns:1fr 1fr;">
-                        <div class="report-item"><div class="item-label">Tactical Ability</div><div class="item-value" style="font-size:16px;">${gameData.tacticalAbilityScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Positional Play</div><div class="item-value" style="font-size:16px;">${gameData.positionalPlayScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Decision Making</div><div class="item-value" style="font-size:16px;">${gameData.decisionMakingScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Consistency</div><div class="item-value" style="font-size:16px;">${gameData.consistencyScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Piece Activity</div><div class="item-value" style="font-size:16px;">${gameData.pieceActivityScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">King Safety</div><div class="item-value" style="font-size:16px;">${gameData.kingSafetyScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Endgame Quality</div><div class="item-value" style="font-size:16px;">${gameData.endgameQualityScore || 50}%</div></div>
-                        <div class="report-item"><div class="item-label">Material Balance</div><div class="item-value" style="font-size:16px;">${gameData.materialBalance || 0}</div></div>
-                    </div>
-                </div>
-                ${gameData.coachRecommendations && gameData.coachRecommendations.length > 0 ? `
-                <div class="report-section">
-                    <div class="report-section-head">
-                        <h3>🎯 Coach Recommendations</h3>
-                        <span class="report-section-tag">Next steps</span>
-                    </div>
-                    ${gameData.coachRecommendations.map((item) => `<div class="coach-item">💡 ${item}</div>`).join('')}
-                </div>` : ''}
-            </div>
+            <!-- ============ COACH RECOMMENDATIONS ============ -->
+            ${gameData.coachRecommendations && gameData.coachRecommendations.length > 0 ? `
+            <section class="anl-section">
+              <div class="anl-section-head">
+                <span class="anl-eyebrow">Coach</span>
+                <h2>Recommendations <span class="anl-accent">for you</span></h2>
+              </div>
+              <div class="anl-coach-list">
+                ${gameData.coachRecommendations.map((item) => `<div class="coach-item">💡 ${item}</div>`).join('')}
+              </div>
+            </section>` : ''}
 
-            <button class="back-btn-sm" onclick="loadMatches()" style="margin:0 auto;display:block;width:220px;padding:14px;border-radius:16px;font-weight:600;font-size:14px;">← Back to Games</button>
+            <button class="anl-back-btn" onclick="loadMatches()">← Back to Games</button>
           </div>
         </div>
 

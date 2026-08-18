@@ -1,28 +1,35 @@
-# Complete Visual Rebuild — Tracking
+# TODO — Premium SaaS Learning page + Bug Fixes
 
-Goal: Rebuild the frontend UI to match premium AI SaaS mockups while preserving ALL JS logic, IDs, API calls, event listeners, and business logic.
+**Goal:**
+- Rebuild the Learning page using the **Premium SaaS design** (same as Home/Quiz/Premium pages, built from the reusable UI kit).
+- Keep ALL backend integrations and AI modules.
+- Use real backend data wherever it exists; keep original Premium mock/demo content as fallback.
+- Do NOT show empty states unless a module cannot function without backend data.
+- Fix the Opening Explorer black screen (invalid chess.js/FEN usage).
+- Fix the Profile page black screen (shared EmptyState/LoadingState/ErrorState undefined `chess-*` CSS vars).
+- Do NOT redesign Home, Quiz, or Premium.
 
-## Files to modify (no new global stylesheet)
-- [ ] frontend/css/style.css — premium design system (design tokens, glass cards, heroes, grids, buttons)
-- [ ] frontend/css/learning.css — align learning page with premium design language
-- [ ] frontend/css/phase3.css — align quiz/daily-training/game-review/learning-path modules
-- [ ] frontend/css/quiz.css — align quiz page
-- [ ] frontend/css/ai-widget.css — align AI coach widget
-- [ ] frontend/index.html — link existing stylesheets (no new ones)
-- [ ] frontend/js/personalDashboard.js — rebuild Dashboard HTML
-- [ ] frontend/js/game.js — rebuild Play (start + game) HTML
-- [ ] frontend/js/learningPortal.js — rebuild Learning portal shell
-- [ ] frontend/js/aiLearning.js — rebuild AI Learning shell
-- [ ] frontend/js/analysis.js — rebuild Analysis report
-- [ ] frontend/js/dashboard.js — rebuild My Games grid
+## Steps
 
-## Rebuild order
-1. [ ] style.css design system (shared tokens + components)
-2. [ ] Dashboard (personalDashboard.js)
-3. [ ] Play (game.js)
-4. [ ] Learning (learningPortal.js + aiLearning.js)
-5. [ ] Analysis (analysis.js)
-6. [ ] My Games (dashboard.js)
-7. [ ] learning.css / phase3.css / quiz.css / ai-widget.css alignment
-8. [ ] index.html link check
-9. [ ] Final verification (no broken references)
+- [x] Investigate current state (Learning page renders legacy portal; Premium components deleted & unrecoverable; backend dashboard API exists; chess.js v1.x API differences; shared components use undefined CSS vars).
+- [x] Fix shared components: EmptyState, LoadingState, ErrorState → use valid UI-kit Tailwind classes (fixes Profile black screen globally).
+- [x] Fix LearningBoard: safe FEN default + guard invalid FEN (fixes Explorer/Endgame crash).
+- [x] Fix OpeningExplorer: valid default FEN, correct chess.js v1.x move API (remove `sloppy`).
+- [x] Fix EndgameLab: valid default FEN, guard invalid FEN.
+- [x] Rebuild Learning/index.jsx as Premium SaaS page:
+  - Hero (welcome + real dashboard data)
+  - Progress cards (Level, XP, Streak, Win Rate, Avg Accuracy, Games) — real data + mock fallback
+  - Continue Learning (recentGame / mock)
+  - Learning Paths (dashboard learningProgress / mock)
+  - Featured Lessons (mock demo content)
+  - Daily Challenge / Today's Plan (todayGoal, todayTraining / mock)
+  - Suggested Lessons (recentRecommendation / mock)
+  - Personal Training Plan (todayTraining / mock)
+  - Achievements (mock demo content)
+  - AI Learning Tools section integrating all AI modules (AICoach, AI Chess Coach, Opening Search, Opening Explorer, Endgame Lab, Tactics Trainer, Puzzle Trainer, Learning Path, Master Games)
+- [x] Verify all routes build & run without runtime errors (Home, Play, Analysis, Learning, Quiz, Profile, Premium).
+- [x] Build client (`vite build`) to confirm no compile errors — passed (2316 modules, no errors).
+- [x] Verified chess.js v1.x usage across Play/Analysis/Learning/hooks — all use valid `new Chess()` / FEN-guarded constructors; no `sloppy` option remains.
+- [x] Verified Profile page: shared EmptyState/LoadingState/ErrorState now use valid UI-kit Tailwind classes (no undefined CSS vars) — fixes the black screen.
+- [x] Verified Learning/index.jsx: Premium SaaS page with all sections + real dashboard data + mock fallbacks + all AI modules preserved.
+\>

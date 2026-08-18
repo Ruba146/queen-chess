@@ -433,6 +433,48 @@ function calculateMissedWins(moveAnalysis, playerColor) {
 }
 
 /**
+ * Generate a WHY explanation for a move based on the actual position change
+ */
+function generateMoveExplanation(move, evalBefore, evalAfter, loss, phase, materialBefore, materialAfter) {
+  const explanations = []
+  const isCapture = move.includes("x")
+  const isCheck = move.includes("+")
+  const isPromotion = move.includes("=")
+  const materialChange = materialAfter - materialBefore
+
+  if (isPromotion) {
+    explanations.push("Pawn promotion creates a powerful new piece.")
+  }
+  if (isCheck) {
+    explanations.push("Delivers check, forcing the opponent to respond.")
+  }
+  if (isCapture && materialChange > 0) {
+    explanations.push(`Wins material: ${materialChange / 100} pawns.`)
+  }
+  if (loss <= 10) {
+    explanations.push("Maintains the best possible evaluation.")
+  } else if (loss <= 60) {
+    explanations.push("A strong move that keeps a favorable position.")
+  } else if (loss <= 250) {
+    explanations.push("The move allows the opponent to improve their position.")
+  } else if (loss <= 500) {
+    explanations.push("Significant evaluation drop — a better alternative existed.")
+  } else {
+    explanations.push("Major evaluation loss — the position deteriorates sharply.")
+  }
+
+  if (phase === "opening") {
+    explanations.push("Opening phase: prioritize development and center control.")
+  } else if (phase === "middlegame") {
+    explanations.push("Middlegame: look for tactical opportunities and piece coordination.")
+  } else {
+    explanations.push("Endgame: king activity and pawn promotion are key.")
+  }
+
+  return explanations.slice(0, 3).join(" ")
+}
+
+/**
  * MAIN ANALYSIS FUNCTION
  */
 function performAnalysis(moves, playerColor, stockfishEvals, ratingBefore, ratingAfter, duration, difficulty) {
@@ -451,17 +493,29 @@ function performAnalysis(moves, playerColor, stockfishEvals, ratingBefore, ratin
   let brilliantMoves = 0;
   let missedWins = 0;
 
+  let prevMaterial = calculateMaterialBalance(chess.fen())
+
   for (let i = 0; i < moves.length; i++) {
     const move = moves[i];
     const phase = getGamePhase(i + 1, moves.length);
 
     let evalBefore = 0;
     let evalAfter = 0;
+    let materialBefore = prevMaterial
 
     if (stockfishEvals && stockfishEvals[i] !== undefined) {
       evalBefore = stockfishEvals[i].before || 0;
       evalAfter = stockfishEvals[i].after || 0;
     }
+
+    try {
+      chess.move(move);
+    } catch (e) {
+      // Skip invalid moves
+    }
+
+    const materialAfter = calculateMaterialBalance(chess.fen())
+    prevMaterial = materialAfter
 
     const loss = Math.abs(evalBefore - evalAfter);
     const classification = classifyMove(loss);
@@ -481,6 +535,8 @@ function performAnalysis(moves, playerColor, stockfishEvals, ratingBefore, ratin
       missedWins++;
     }
 
+    const why = generateMoveExplanation(move, evalBefore, evalAfter, loss, phase, materialBefore, materialAfter)
+
     const analysisEntry = {
       moveNumber: i + 1,
       move,
@@ -488,7 +544,8 @@ function performAnalysis(moves, playerColor, stockfishEvals, ratingBefore, ratin
       loss: Math.round(loss),
       evalBefore: Math.round(evalBefore),
       evalAfter: Math.round(evalAfter),
-      phase
+      phase,
+      why,
     };
 
     moveAnalysis.push(analysisEntry);
@@ -498,14 +555,8 @@ function performAnalysis(moves, playerColor, stockfishEvals, ratingBefore, ratin
       moveNumber: i + 1,
       playerEval: Math.round(evalAfter),
       bestEval: Math.round(evalBefore),
-      diff: Math.round(loss)
+      diff: Math.round(loss),
     });
-
-    try {
-      chess.move(move);
-    } catch (e) {
-      // Skip invalid moves
-    }
   }
 
   const avgLoss = moves.length > 0 ? totalLoss / moves.length : 0;

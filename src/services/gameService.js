@@ -3,6 +3,7 @@ const gameRepository = require("../repositories/gameRepository");
 const { calculateElo } = require("../utils/elo");
 const { performAnalysis, getRankFromRating, determinePlayerLevel } = require("./analysisService");
 const { buildTrainingDatasetPayload } = require("./trainingDatasetService");
+const { detectOpening } = require("./gameAnalysisService");
 
 async function getStats(user, mode) {
   const stats = user.stats?.[mode] || { wins: 0, losses: 0, draws: 0 };
@@ -44,7 +45,7 @@ async function saveGame(userId, body) {
   const pgn = body.pgn || "";
   const playerColor = body.playerColor || "white";
   const accuracy = body.accuracy || 0;
-  const opening = body.opening || "Unknown Opening";
+  const opening = body.opening || detectOpening(moves) || "Unknown Opening";
   const difficulty = body.difficulty || "intermediate";
   const duration = body.duration || 0;
 
@@ -133,6 +134,9 @@ async function saveGame(userId, body) {
     rankAfterGame: getRankFromRating(newRating),
     playerLevelAfterGame: updatedUser.playerLevel,
     ratingChange: newRating - ratingBefore,
+    snapshotBefore: ratingBefore,
+    snapshotAfter: newRating,
+    snapshotChange: newRating - ratingBefore,
   };
 
   if (analysisResult) {
@@ -239,8 +243,8 @@ async function saveGame(userId, body) {
   };
 }
 
-async function listMyGames(userId) {
-  return gameRepository.listUserGames(userId, { excludeTraining: true });
+async function listMyGames(userId, options = {}) {
+  return gameRepository.listUserGames(userId, { excludeTraining: true, ...options });
 }
 
 async function getGameById(gameId) {

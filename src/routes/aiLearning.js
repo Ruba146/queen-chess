@@ -208,8 +208,8 @@ router.post('/learning-path', async (req, res) => {
 // Puzzle Recommendations
 router.post('/recommend/puzzles', async (req, res) => {
   try {
-    const { themes, rating, count } = req.body;
-    const recommendations = await getPuzzleRecommendations({ themes: themes || [], rating: rating || 1200, count: count || 5 });
+    const { themes, rating, category, count } = req.body;
+    const recommendations = await getPuzzleRecommendations({ themes: themes || [], rating: rating || 1200, category, count: count || 5 });
     res.json({ success: true, data: recommendations });
   } catch (error) {
     console.error('Puzzle Recommendations Error:', error);
