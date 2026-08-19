@@ -240,16 +240,16 @@ export function useChessGame({ playerColor = 'white', difficulty = 'intermediate
         if (bestMove && bestMove.length >= 4) {
           const from = bestMove.slice(0, 2)
           const to = bestMove.slice(2, 4)
-          try {
-            current.move({ from, to, promotion: 'q' })
-            syncState(current)
-          } catch {
+          let moveResult = current.move({ from, to, promotion: 'q' })
+          if (!moveResult) {
             const legal = current.moves({ verbose: true })
             if (legal.length > 0) {
               const m = legal[Math.floor(Math.random() * legal.length)]
-              current.move(m)
-              syncState(current)
+              moveResult = current.move(m)
             }
+          }
+          if (moveResult) {
+            syncState(current)
           }
         }
       })

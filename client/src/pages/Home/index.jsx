@@ -298,7 +298,7 @@ function QuickActions() {
         const Icon = action.icon
         return (
           <QuickActionCard
-            key={action.to}
+            key={action.label}
             label={action.label}
             to={action.to}
             icon={Icon}

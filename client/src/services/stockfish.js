@@ -36,10 +36,12 @@ function ensureWorker() {
     if (line.startsWith('bestmove')) {
       const parts = line.split(' ')
       const move = parts[1]
-      const result = { type: 'bestmove', move: move === '(none)' ? null : move }
+      const result = move === '(none)' ? null : move
+      if (queue[0] === current) {
+        queue.shift()
+        processQueue()
+      }
       current.resolve(result)
-      queue.shift()
-      processQueue()
       return
     }
 

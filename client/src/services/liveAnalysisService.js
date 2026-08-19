@@ -222,9 +222,9 @@ export async function analyzeCurrentPosition(chess, options = {}) {
 export async function analyzePlayerMove(chessBefore, playerMoveUci, playerColor, options = {}) {
   const chess = new Chess(chessBefore.fen())
 
-  let moveObj = null
+  let moveObj
   try {
-    chess.move({ from: playerMoveUci.slice(0, 2), to: playerMoveUci.slice(2, 4), promotion: 'q' })
+    moveObj = chess.move({ from: playerMoveUci.slice(0, 2), to: playerMoveUci.slice(2, 4), promotion: 'q' })
   } catch {
     return null
   }
