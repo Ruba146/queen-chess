@@ -31,12 +31,6 @@
       "skillPath": "prisma-driver-adapter-implementation/SKILL.md",
       "computedHash": "86034220752575ac0551aa3d579ed0bdfb90616000ae5703bf11e47b655ec7d1"
     },
-    "prisma-mongodb-upgrade": {
-      "source": "prisma/skills",
-      "sourceType": "github",
-      "skillPath": "prisma-mongodb-upgrade/SKILL.md",
-      "computedHash": "f9ba440e88ca4cec9801d04762296e29e99ca08cb8a8156e4f783ecf90279c8f"
-    },
     "prisma-postgres": {
       "source": "prisma/skills",
       "sourceType": "github",
